@@ -1,144 +1,83 @@
 <template>
-    <div class="bg-slate-950 min-h-screen text-white">
-      <!-- Hero Section with Search -->
-      <section class="relative py-16 bg-gradient-to-r from-indigo-950 to-blue-800">
-        <div class="container mx-auto px-4 max-w-7xl">
-          <div class="flex justify-center mb-8">
-            <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-wide">
-              <span class="text-blue-300">Click</span>
-              <span class="text-white">&Offer</span>
-            </h1>
-          </div>
-          
-          <div class="text-center max-w-3xl mx-auto mb-12">
-            <h2 class="text-2xl md:text-3xl font-bold mb-4">Find Your Dream Property</h2>
-            <p class="text-slate-300 text-lg">Search any address to explore details and make offers instantly</p>
-          </div>
-          
-          <!-- Search Box -->
-          <div class="max-w-2xl mx-auto">
-            <AddressAutocomplete 
-              :access_token="mapboxToken"
-              @select-address="handleAddressSelect"
-              @loading-state="updateLoadingState"
-            />
-          </div>
-        </div>
-      </section>
+    <div class="homepage min-h-screen w-full overflow-hidden bg-slate-950 text-white relative">
+      <!-- Gradient Background -->
+      <div class="absolute inset-0 bg-gradient-radial from-blue-900/20 via-indigo-950/30 to-slate-950/90 animate-gradient-slow"></div>
       
-      <!-- Loading Indicator -->
-      <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div class="bg-slate-900 border border-slate-700 p-6 rounded-lg shadow-xl text-center">
-          <div class="w-16 h-16 border-4 border-slate-700 border-t-blue-400 rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-slate-300">Searching property data...</p>
+      <!-- Animated Background Elements -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div v-for="i in 5" :key="i" 
+             class="absolute rounded-full opacity-10 animate-float"
+             :class="`bg-blue-${300 + (i * 100)}`"
+             :style="{
+               width: `${50 + (i * 30)}px`,
+               height: `${50 + (i * 30)}px`,
+               top: `${Math.random() * 100}%`,
+               left: `${Math.random() * 100}%`,
+               animationDelay: `${i * 2}s`,
+               animationDuration: `${15 + (i * 5)}s`
+             }">
         </div>
       </div>
       
-      <!-- Featured Properties Section -->
-      <section class="py-16">
-        <div class="container mx-auto px-4 max-w-7xl">
-          <div class="flex justify-between items-center mb-12">
-            <h2 class="text-2xl font-bold">Featured Properties</h2>
-            <NuxtLink to="/listings" class="text-blue-300 hover:text-blue-200 font-semibold flex items-center">
-              View All
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-              </svg>
-            </NuxtLink>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Sample Property Cards -->
-            <div v-for="i in 3" :key="i" class="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 group transition-all duration-300 hover:border-blue-600">
-              <div class="h-48 bg-slate-800 relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-50"></div>
-              </div>
-              <div class="p-6">
-                <h3 class="text-xl font-semibold mb-2 group-hover:text-blue-300 transition-colors">Modern Luxury Home</h3>
-                <p class="text-slate-400 mb-4">123 Example Street, Cityville</p>
-                <div class="flex justify-between">
-                  <span class="text-blue-300 font-bold">$1,250,000</span>
-                  <div class="text-slate-300 flex space-x-3">
-                    <span class="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                      </svg>
-                      4
-                    </span>
-                    <span class="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5 5a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V8a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8a1 1 0 00-1-1h-4v3zM9 8H4v3h5V8z" clip-rule="evenodd" />
-                      </svg>
-                      3
-                    </span>
-                    <span class="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10z" clip-rule="evenodd" />
-                      </svg>
-                      2,100
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <!-- View Details Button -->
-              <div class="bg-slate-800 px-6 py-3 mt-2">
-                <NuxtLink to="/" class="text-blue-300 hover:text-blue-200 font-medium flex items-center justify-end">
-                  View Details
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </NuxtLink>
-              </div>
+      <!-- Main Content -->
+      <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-8">
+        <!-- Logo and Branding - SIMPLIFIED -->
+        <div class="mb-8 md:mb-12">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter">
+            <span class="text-blue-400">Click</span>
+            <span class="text-white">&Offer</span>
+          </h1>
+        </div>
+        
+        <!-- Hero Text -->
+        <div class="text-center max-w-2xl mx-auto mb-8 md:mb-12">
+          <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 tracking-tight text-white leading-tight">
+            Analyze any <span class="text-blue-400">Property</span> in Seconds
+          </h2>
+          <p class="text-slate-300 text-base md:text-lg leading-relaxed opacity-90">
+            Search any address to instantly explore details, analyze investment potential, and make offers with confidence.
+          </p>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="w-full max-w-2xl mx-auto mb-8 md:mb-12 search-container">
+          <div class="search-glow absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-30"></div>
+          <AddressAutocomplete 
+            :access_token="mapboxToken"
+            @select-address="handleAddressSelect"
+            @loading-state="updateLoadingState"
+            class="z-10 relative"
+          />
+          <div class="text-center mt-3 text-slate-400 text-sm">Try "123 Main St" or any US address</div>
+        </div>
+        
+        <!-- Benefits -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl mx-auto mt-8">
+          <div class="benefit-card" v-for="(benefit, index) in benefits" :key="index">
+            <div class="benefit-icon">
+              <component :is="benefit.icon" class="w-6 h-6" />
             </div>
+            <h3 class="text-lg font-semibold mb-1 text-white">{{ benefit.title }}</h3>
+            <p class="text-sm text-slate-300">{{ benefit.description }}</p>
           </div>
         </div>
-      </section>
+      </div>
       
-      <!-- Value Proposition -->
-      <section class="py-16 bg-slate-900">
-        <div class="container mx-auto px-4 max-w-7xl">
-          <h2 class="text-2xl font-bold mb-12 text-center">Why Choose Click&Offer</h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="text-center p-6 rounded-lg bg-slate-950 border border-slate-800">
-              <div class="inline-flex items-center justify-center p-3 bg-blue-900 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold mb-2">Real-Time Location Data</h3>
-              <p class="text-slate-400">Get precise location information and neighborhood insights using advanced mapping technology</p>
-            </div>
-            
-            <div class="text-center p-6 rounded-lg bg-slate-950 border border-slate-800">
-              <div class="inline-flex items-center justify-center p-3 bg-blue-900 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold mb-2">Instant Price Estimates</h3>
-              <p class="text-slate-400">Access accurate property valuations and price history powered by Zillow's comprehensive database</p>
-            </div>
-            
-            <div class="text-center p-6 rounded-lg bg-slate-950 border border-slate-800">
-              <div class="inline-flex items-center justify-center p-3 bg-blue-900 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
-                  <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
-                </svg>
-              </div>
-              <h3 class="text-lg font-semibold mb-2">Detailed Analytics</h3>
-              <p class="text-slate-400">View comprehensive property metrics including market trends, tax history, and comparable sales</p>
-            </div>
+      <!-- Loading Indicator -->
+      <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div class="bg-slate-900/90 border border-slate-700/50 p-8 rounded-xl shadow-2xl text-center max-w-sm">
+          <div class="flex items-center justify-center mb-6">
+            <div class="w-16 h-16 border-4 border-slate-700/30 border-t-blue-400 rounded-full animate-spin"></div>
           </div>
+          <p class="text-xl font-medium text-white mb-2">Searching Properties</p>
+          <p class="text-slate-300 text-sm">Finding the perfect match for your search...</p>
         </div>
-      </section>
+      </div>
     </div>
   </template>
   
   <script setup>
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, h } from 'vue';
   import { useRouter } from 'vue-router';
   import AddressAutocomplete from '~/components/AddressAutocomplete.vue';
   
@@ -146,6 +85,37 @@
   const config = useRuntimeConfig();
   const mapboxToken = config.public.MAPBOX_API_TOKEN;
   const isLoading = ref(false);
+  
+  // Benefits with icons
+  const benefits = [
+    {
+      title: 'Instant Analysis',
+      description: 'Get detailed property metrics and investment analysis in seconds.',
+      icon: defineComponent({
+        render: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', class: 'text-blue-400' }, [
+          h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' })
+        ])
+      })
+    },
+    {
+      title: 'Smart Offers',
+      description: 'Create and send offers based on accurate market data and valuation.',
+      icon: defineComponent({
+        render: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', class: 'text-blue-400' }, [
+          h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' })
+        ])
+      })
+    },
+    {
+      title: 'Fast Decisions',
+      description: 'Make informed investment decisions with comprehensive property data.',
+      icon: defineComponent({
+        render: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', class: 'text-blue-400' }, [
+          h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M13 10V3L4 14h7v7l9-11h-7z' })
+        ])
+      })
+    }
+  ];
   
   // Handle the selected address from the autocomplete
   const handleAddressSelect = (addressData) => {
@@ -172,18 +142,30 @@
   </script>
   
   <style>
+  /* Base Styles */
   body {
     @apply bg-slate-950;
   }
   
+  /* Mapbox Geocoder Styling */
   .mapboxgl-ctrl-geocoder {
     @apply w-full max-w-none !important;
-    @apply bg-slate-900 text-white border border-slate-700 rounded-lg shadow-lg !important;
+    @apply bg-slate-800/90 text-white border border-blue-900/40 rounded-xl shadow-2xl !important;
+    @apply shadow-blue-600/5 !important;
   }
   
   .mapboxgl-ctrl-geocoder--input {
-    @apply bg-slate-900 text-white placeholder-slate-400 !important;
-    @apply focus:ring-blue-400 focus:border-blue-400 !important;
+    @apply bg-slate-800 text-white placeholder-slate-400 text-lg py-4 px-6 !important;
+    @apply focus:ring-blue-500 focus:border-blue-500 !important;
+    @apply font-medium !important;
+  }
+  
+  .mapboxgl-ctrl-geocoder--icon {
+    @apply top-[50%] -translate-y-[50%] !important;
+  }
+  
+  .mapboxgl-ctrl-geocoder--icon-search {
+    @apply text-blue-400 !important;
   }
   
   .mapboxgl-ctrl-geocoder--button {
@@ -191,11 +173,11 @@
   }
   
   .mapboxgl-ctrl-geocoder--suggestion {
-    @apply text-white bg-slate-800 !important;
+    @apply text-white bg-slate-800 border-t border-slate-700/30 !important;
   }
   
   .mapboxgl-ctrl-geocoder--suggestion-title {
-    @apply text-white !important;
+    @apply text-white font-medium !important;
   }
   
   .mapboxgl-ctrl-geocoder--suggestion-address {
@@ -203,6 +185,61 @@
   }
   
   .mapboxgl-ctrl-geocoder--suggestion:hover {
-    @apply bg-blue-800 !important;
+    @apply bg-blue-900/70 !important;
+  }
+  
+  /* Custom Animations */
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  @keyframes float {
+    0% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-20px) translateX(10px); }
+    50% { transform: translateY(0) translateX(20px); }
+    75% { transform: translateY(20px) translateX(10px); }
+    100% { transform: translateY(0) translateX(0); }
+  }
+  
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.3; }
+  }
+  
+  .animate-float {
+    animation: float 20s ease-in-out infinite;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+  }
+  
+  .animate-gradient-slow {
+    background-size: 200% 200%;
+    animation: gradient-shift 15s ease infinite;
+  }
+  
+  /* Custom Components Styling */
+  .search-container {
+    position: relative;
+  }
+  
+  .search-glow {
+    animation: pulse-slow 4s ease-in-out infinite;
+  }
+  
+  .benefit-card {
+    @apply bg-slate-900/50 border border-slate-800/60 rounded-xl p-4 transition-all;
+    @apply hover:bg-slate-800/60 hover:border-blue-900/50 hover:translate-y-[-2px];
+  }
+  
+  .benefit-icon {
+    @apply bg-blue-900/30 p-3 rounded-lg mb-3 inline-flex;
+  }
+  
+  .bg-gradient-radial {
+    background-image: radial-gradient(var(--tw-gradient-stops));
   }
   </style>

@@ -1,5 +1,12 @@
 <template>
     <div class="min-h-screen bg-slate-950 text-white">
+      <!-- Top-Left Logo -->
+    <div class="absolute hidden md:block top-4 left-4 z-20">
+      <a href="/">
+        <img src="/logo.png" alt="Click&Offer Logo" class="h-10 md:h-12" />
+      </a>
+      
+    </div>
       <!-- Back Button & Property Actions -->
       <div class="container mx-auto px-4 py-4 flex justify-between items-center print:hidden">
         <button

@@ -12,23 +12,7 @@
           @select-address="handleAddressSelect"
           @loading-state="updateLoadingState"
         />
-      </div>
-      
-      <!-- Reopen Sidebar Button - Only shown when sidebar is closed but we have property data -->
-      <div
-        v-if="showReopenButton"
-        class="absolute right-4 top-4 z-10"
-      >
-        <button
-          @click="$emit('reopen-sidebar')"
-          class="px-4 py-2 bg-slate-900 border border-slate-700 shadow-md rounded-md text-sm font-medium text-white hover:bg-slate-800 transition-colors flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-blue-300" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm3 0v14h9V3H6z" clip-rule="evenodd" />
-          </svg>
-          Show Details
-        </button>
-      </div>
+      </div>      
     </div>
   </template>
   

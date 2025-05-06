@@ -17,6 +17,23 @@ export default {
     colors: {
       'white': '#ffffff',
       'black': '#000000',
+      yellow: {
+        50: '#fffbeb',
+        100: '#fef3c7',
+        200: '#fde68a',
+        300: '#fcd34d',
+        400: '#fbbf24',  // Standard yellow
+        500: '#f59e0b',  // Amber
+        600: '#d97706',  // Darker amber
+        700: '#b45309',  // Dark amber
+        800: '#92400e',  // Brown amber
+        900: '#78350f',  // Deep brown
+        950: '#451a03',  // Darkest brown
+        // Gold variations
+        gold: '#d4af37',        // Classic gold
+        'gold-light': '#f9d776', // Light gold
+        'gold-dark': '#aa8c2c',  // Dark gold
+      },
       red: {
         50: '#fef2f2',
         100: '#fee2e2',

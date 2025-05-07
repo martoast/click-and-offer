@@ -57,33 +57,6 @@
             No additional images available.
           </div>
         </div>
-        <!-- Map Section -->
-        <div
-          class="bg-gradient-to-br from-black to-gray-900 rounded-lg border border-yellow-gold/30 p-6 h-46 map-container-class shadow-lg"
-        >
-          <MapDisplay
-            v-if="
-              property && property.latitude && property.longitude && mapboxToken
-            "
-            :access-token="mapboxToken"
-            :property="{
-              propertyInfo: {
-                latitude: property.latitude,
-                longitude: property.longitude,
-              },
-            }"
-            :initial-zoom="15"
-            :sidebar-open="false"
-            :selected-property="property"
-            class="h-full rounded-lg overflow-hidden"
-          />
-          <div
-            v-else
-            class="h-full flex items-center justify-center text-gray-400 italic"
-          >
-            Map requires valid Mapbox token and property coordinates.
-          </div>
-        </div>
       </div>
       <!-- Property Details Section (Right Column on Desktop) -->
       <div class="space-y-6">

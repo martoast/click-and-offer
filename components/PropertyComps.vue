@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-gradient-to-br from-black to-gray-900 rounded-xl border border-yellow-gold/30 shadow-xl overflow-hidden mb-8">
+  <div class="bg-black rounded-xl border border-yellow-gold/30 shadow-xl overflow-hidden mb-8">
     <!-- Header -->
     <div class="p-6 border-b border-yellow-gold/30 flex items-center justify-between bg-black/50">
       <h2 class="text-xl font-bold flex items-center text-white">
@@ -12,6 +12,7 @@
         <span class="bg-yellow-gold/10 text-yellow-gold text-xs px-3 py-1 rounded-full font-medium">{{ filteredComps.length }} Properties</span>
       </div>
     </div>
+    
     <!-- Responsive Content Container -->
     <div class="lg:flex">
       <!-- Map Section - Full width on mobile, 40% width on large screens -->
@@ -25,54 +26,82 @@
         </div>
       </div>
       
-      <!-- Table Section - Full width on mobile, 60% width on large screens -->
-      <div class="lg:w-3/5">
-        <!-- Comps Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm text-left">
-            <thead class="text-xs uppercase bg-gray-900/80 text-gray-400 border-b border-yellow-gold/30">
-              <tr>
-                <th scope="col" class="p-4">Address</th>
-                <th scope="col" class="p-4">Price</th>
-                <th scope="col" class="p-4">Size</th>
-                <th scope="col" class="p-4 text-center">Bed/Bath</th>
-                <th scope="col" class="p-4 text-center">Year Built</th>
-                <th scope="col" class="p-4 text-center">Sale Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="(comp, index) in sortedComps" 
-                :key="comp.id" 
-                :class="[
-                  index % 2 === 0 ? 'bg-black/30' : 'bg-gray-900/60',
-                  hoveredCompId === comp.id ? 'bg-gray-800/70' : ''
-                ]"
-                class="border-b border-yellow-gold/20 hover:bg-gray-800/40 transition-colors"
-                @mouseenter="hoveredCompId = comp.id"
-                @mouseleave="hoveredCompId = null"
-              >
-                <td class="p-4 text-gray-300 font-medium">
-                  {{ comp.address?.address || 'N/A' }}
-                </td>
-                <td class="p-4">
-                  <div class="text-white font-medium">{{ formatPrice(comp.lastSaleAmount || comp.estimatedValue) }}</div>
-                  <div class="text-xs text-gray-500">{{ formatPrice(calculatePricePerSqFt(comp)) }}/sqft</div>
-                </td>
-                <td class="p-4 text-gray-300">{{ formatNumber(comp.squareFeet) }} sqft</td>
-                <td class="p-4 text-center text-gray-300">{{ comp.bedrooms || 'N/A' }} / {{ comp.bathrooms || 'N/A' }}</td>
-                <td class="p-4 text-center text-gray-300">{{ comp.yearBuilt || 'N/A' }}</td>
-                <td class="p-4 text-center text-gray-300">{{ formatDate(comp.lastSaleDate) }}</td>
-              </tr>
-              
-              <tr v-if="sortedComps.length === 0" class="bg-black/30 border-b border-yellow-gold/20">
-                <td colspan="6" class="p-8 text-center text-gray-500 italic">
-                  No comparable properties found.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Properties Grid Section -->
+      <div class="lg:w-3/5 overflow-y-auto max-h-[800px]">
+        <!-- Filters/Sort Controls (optional) -->
+        <div class="px-4 pt-4 pb-2 flex justify-between items-center">
+          <h3 class="text-white text-sm font-medium">Comparable Properties</h3>
+          <div class="text-xs text-gray-400">Sorted by: Most Recent</div>
         </div>
+        
+        <!-- Properties List -->
+        <div class="px-4 space-y-3">
+          <div 
+            v-for="comp in sortedComps" 
+            :key="comp.id" 
+            :class="[
+              'flex rounded-lg transition-all duration-200',
+              hoveredCompId === comp.id ? 'bg-gray-800/70 shadow-lg' : 'bg-gray-900/30',
+            ]"
+            @mouseenter="hoveredCompId = comp.id"
+            @mouseleave="hoveredCompId = null"
+          >
+            <!-- Property Image (left side) -->
+            <div class="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 rounded-l-lg overflow-hidden">
+              <img 
+                :src="getStreetViewImageUrl(comp)" 
+                :alt="`Street view of ${comp.address?.address || 'property'}`"
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            
+            <!-- Property Details (right side) -->
+            <div class="flex-1 p-3 flex flex-col justify-between">
+              <!-- Top Row -->
+              <div>
+                <p class="text-white text-sm font-medium truncate">{{ comp.address?.address || 'N/A' }}</p>
+                <p class="text-yellow-gold text-lg font-semibold mt-1">{{ formatPrice(comp.lastSaleAmount || comp.estimatedValue) }}</p>
+              </div>
+              
+              <!-- Bottom Row - Property Specs -->
+              <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs">
+                <div class="flex items-center text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                  </svg>
+                  {{ formatNumber(comp.squareFeet) }} sqft
+                </div>
+                <div class="flex items-center text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                  </svg>
+                  {{ comp.bedrooms || 'N/A' }} bed / {{ comp.bathrooms || 'N/A' }} bath
+                </div>
+                <div class="flex items-center text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                  </svg>
+                  {{ formatDate(comp.lastSaleDate) }}
+                </div>
+                <div class="flex items-center text-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd" />
+                  </svg>
+                  {{ comp.yearBuilt || 'N/A' }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty State -->
+          <div v-if="sortedComps.length === 0" class="p-8 text-center text-gray-500 italic bg-black/30 rounded-lg">
+            No comparable properties found.
+          </div>
+        </div>
+        
+        <!-- Bottom Padding -->
+        <div class="h-4"></div>
       </div>
     </div>
   </div>
@@ -81,6 +110,9 @@
 <script setup>
 import { computed, ref } from 'vue';
 import CompsMap from './CompsMap.vue';
+
+const config = useRuntimeConfig();
+const google_api_key = config.public.GOOGLE_MAPS_API_KEY;
 
 const props = defineProps({
   // The entire Real Estate API data object that contains property and comps
@@ -101,6 +133,12 @@ const hoveredCompId = ref(null);
 // Handle marker hover events from the map
 const onMarkerHovered = (compId) => {
   hoveredCompId.value = compId;
+};
+
+// Get Google Street View image for a property
+const getStreetViewImageUrl = (property) => {
+  if (!property.latitude || !property.longitude) return "/placeholder.png";
+  return `https://maps.googleapis.com/maps/api/streetview?location=${property.latitude},${property.longitude}&size=400x300&key=${google_api_key}`;
 };
 
 // Computed properties

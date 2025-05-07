@@ -59,7 +59,7 @@
         </div>
         <!-- Map Section -->
         <div
-          class="bg-gradient-to-br from-black to-gray-900 rounded-lg border border-yellow-gold/30 p-6 h-96 map-container-class shadow-lg"
+          class="bg-gradient-to-br from-black to-gray-900 rounded-lg border border-yellow-gold/30 p-6 h-46 map-container-class shadow-lg"
         >
           <MapDisplay
             v-if="

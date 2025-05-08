@@ -61,7 +61,9 @@
               <!-- Top Row -->
               <div>
                 <p class="text-white text-sm font-medium truncate">{{ comp.address?.address || 'N/A' }}</p>
-                <p class="text-yellow-gold text-lg font-semibold mt-1">{{ formatPrice(comp.lastSaleAmount || comp.estimatedValue) }}</p>
+                <p class="text-yellow-gold text-lg font-semibold mt-1">
+                  {{ formatPrice(Number(comp.lastSaleAmount) > 0 ? comp.lastSaleAmount : comp.estimatedValue) }}
+                </p>
               </div>
               
               <!-- Bottom Row - Property Specs -->

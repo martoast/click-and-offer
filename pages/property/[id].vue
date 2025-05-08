@@ -67,6 +67,7 @@
       <!-- Property Overview Section -->
       <PropertyOverview
         :property="zillowData"
+        :reapi_property="realEstateData"
         :mapbox-token="mapboxToken"
       />
 

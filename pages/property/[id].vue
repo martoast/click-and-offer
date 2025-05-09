@@ -390,18 +390,18 @@
     </div>
   </div>
 </template>
-
 <script setup>
-import { ref, reactive, onMounted, computed, watch, nextTick } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import PropertyOverview from "~/components/PropertyOverview.vue";
-import InvestmentOpportunity from "~/components/InvestmentOpportunity.vue";
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import PropertyOverview from '~/components/PropertyOverview.vue';
+import InvestmentOpportunity from '~/components/InvestmentOpportunity.vue';
+import PropertyComps from '~/components/PropertyComps.vue';
 
 // --- Configuration ---
 const config = useRuntimeConfig();
 const mapboxToken = config.public.MAPBOX_API_TOKEN;
 const zillowApiKey = config.public.ZILLOW_API_KEY;
-const ZILLOW_API_HOST = "zillow-com1.p.rapidapi.com";
+const ZILLOW_API_HOST = 'zillow-com1.p.rapidapi.com';
 
 // --- State ---
 const route = useRoute();
@@ -414,61 +414,72 @@ const error = ref(null);
 const loadingState = reactive({
   realEstate: true,
   zillow: false,
-  images: false,
+  images: false
 });
 
 // AI Chat State
 const showAIChat = ref(false);
-const userInput = ref("");
+const userInput = ref('');
 const messages = ref([]);
 const chatLoading = ref(false);
 const chatContainer = ref(null);
 const threadId = ref(null);
 
-// Suggested questions for the user
+// Suggested questions for the user - focused on real estate deals and strategies
 const chatSuggestions = [
   "What are the best deal structures for this property?",
   "Run the numbers for a Subject-To offer on this property",
   "Create a seller finance offer with terms I can use",
   "What objections might I face with this property and how to handle them?",
   "Help me craft a compelling initial message to the seller",
-  "What's a creative strategy to maximize my profit on this deal?",
+  "What's a creative strategy to maximize my profit on this deal?"
 ];
 
 // Computed property that combines both data sources
 const property = computed(() => {
   if (!realEstateData.value) return null;
-
+  
   return {
     ...realEstateData.value,
-    zillow: zillowData.value || {},
+    zillow: zillowData.value || {}
   };
+});
+
+// Compute property for AI that combines all available data
+const combinedPropertyData = computed(() => {
+  // Start with Real Estate API data
+  const combined = { 
+    ...realEstateData.value,
+    // Add Zillow data in a nested property to avoid key conflicts
+    zillow: zillowData.value || {}
+  };
+  
+  return combined;
 });
 
 // --- Actions ---
 const shareProperty = async () => {
-  const address =
-    realEstateData.value?.propertyInfo?.address?.label || "Property";
-
+  const address = realEstateData.value?.propertyInfo?.address?.label || 'Property';
+  
   const shareData = {
     title: `${address}`,
     text: `Check out this property: ${address}`,
-    url: window.location.href,
+    url: window.location.href
   };
-
+  
   try {
     if (navigator.share) {
       await navigator.share(shareData);
     } else if (navigator.clipboard) {
       await navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      alert('Link copied to clipboard!');
     } else {
-      alert("Sharing not supported on this browser.");
+      alert('Sharing not supported on this browser.');
     }
   } catch (err) {
-    console.error("Error sharing property:", err);
-    if (err.name !== "AbortError") {
-      alert("Could not share property.");
+    console.error('Error sharing property:', err);
+    if (err.name !== 'AbortError') {
+      alert('Could not share property.');
     }
   }
 };
@@ -480,17 +491,17 @@ const printPage = () => {
 // --- AI Chat Functions ---
 // Format the message content with simple markdown-like parsing
 const formatMessage = (content) => {
-  if (!content) return "";
-
+  if (!content) return '';
+  
   // Convert line breaks to <br>
-  let formatted = content.replace(/\n/g, "<br>");
-
+  let formatted = content.replace(/\n/g, '<br>');
+  
   // Bold text between ** **
-  formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
   // Italics text between * *
-  formatted = formatted.replace(/\*(.*?)\*/g, "<em>$1</em>");
-
+  formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
   return formatted;
 };
 
@@ -506,65 +517,62 @@ const scrollToBottom = async () => {
 const sendMessage = async (text) => {
   const messageContent = text || userInput.value.trim();
   if (!messageContent || chatLoading.value) return;
-
+  
   // Add user message to the chat
   messages.value.push({
-    role: "user",
-    content: messageContent,
+    role: 'user',
+    content: messageContent
   });
-
+  
   // Reset input field
-  userInput.value = "";
-
+  userInput.value = '';
+  
   // Scroll to bottom to show new message
   scrollToBottom();
-
+  
   // Show loading indicator
   chatLoading.value = true;
-
+  
   try {
-    // Call the API with the threadId if it exists
-    const response = await fetch("/api/ai-chat", {
-      method: "POST",
+    // Call the API with the threadId if it exists and pass the combined property data
+    const response = await fetch('/api/ai-chat', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         messages: messages.value,
-        property: property.value,
-        threadId: threadId.value,
-      }),
+        property: combinedPropertyData.value,
+        threadId: threadId.value
+      })
     });
-
+    
     const data = await response.json();
-
-    if (data.status === "success" && data.message) {
+    
+    if (data.status === 'success' && data.message) {
       // Store the threadId for future messages
       if (data.threadId) {
         threadId.value = data.threadId;
       }
-
+      
       // Add AI response to chat
       messages.value.push({
-        role: "assistant",
-        content: data.message.content,
+        role: 'assistant',
+        content: data.message.content
       });
     } else {
       // Handle API error
       messages.value.push({
-        role: "assistant",
-        content:
-          data.message ||
-          "I'm sorry, I encountered an error. Please try again.",
+        role: 'assistant',
+        content: data.message || "I'm sorry, I encountered an error. Please try again."
       });
-      console.error("AI Chat Error:", data.error || "Unknown error");
+      console.error('AI Chat Error:', data.error || 'Unknown error');
     }
   } catch (error) {
-    console.error("AI Chat Error:", error);
+    console.error('AI Chat Error:', error);
     messages.value.push({
-      role: "assistant",
-      content:
-        "I'm sorry, there was a problem connecting to the AI service. Please try again later.",
+      role: 'assistant',
+      content: "I'm sorry, there was a problem connecting to the AI service. Please try again later."
     });
   } finally {
     chatLoading.value = false;
@@ -580,58 +588,40 @@ watch(messages, () => {
 // --- API Helper Function ---
 const fetchWithRetry = async (url, options, maxRetries = 2, delayMs = 1000) => {
   let retries = 0;
-
+  
   while (retries <= maxRetries) {
     try {
       const response = await fetch(url, options);
-
+      
       // Handle rate limiting (status 429)
       if (response.status === 429) {
-        console.warn(
-          `Rate limit hit, attempt ${retries + 1}/${maxRetries + 1}`
-        );
+        console.warn(`Rate limit hit, attempt ${retries + 1}/${maxRetries + 1}`);
         retries++;
-
+        
         if (retries <= maxRetries) {
           // Wait before retrying
-          await new Promise((resolve) =>
-            setTimeout(resolve, delayMs * retries)
-          );
+          await new Promise(resolve => setTimeout(resolve, delayMs * retries));
           continue;
         } else {
           throw new Error(`Rate limit exceeded after ${maxRetries} retries`);
         }
       }
-
+      
       // Handle other errors
       if (!response.ok) {
         const errorBody = await response.text();
-        console.error(
-          `API Error Response (${url}):`,
-          response.status,
-          errorBody
-        );
-        throw new Error(
-          `API Error (${response.status}): ${
-            errorBody || "Failed to fetch data"
-          }`
-        );
+        console.error(`API Error Response (${url}):`, response.status, errorBody);
+        throw new Error(`API Error (${response.status}): ${errorBody || 'Failed to fetch data'}`);
       }
-
+      
       return response.json();
     } catch (err) {
       retries++;
-
-      if (
-        retries <= maxRetries &&
-        !err.message.includes("Rate limit exceeded")
-      ) {
-        console.warn(
-          `Request failed, retrying (${retries}/${maxRetries})...`,
-          err
-        );
+      
+      if (retries <= maxRetries && !err.message.includes('Rate limit exceeded')) {
+        console.warn(`Request failed, retrying (${retries}/${maxRetries})...`, err);
         // Wait before retrying
-        await new Promise((resolve) => setTimeout(resolve, delayMs * retries));
+        await new Promise(resolve => setTimeout(resolve, delayMs * retries));
       } else {
         throw err;
       }
@@ -642,9 +632,9 @@ const fetchWithRetry = async (url, options, maxRetries = 2, delayMs = 1000) => {
 // --- Data Fetching Functions ---
 const fetchPropertyData = async () => {
   const propertyId = route.params.id;
-
+  
   if (!propertyId) {
-    error.value = "No property ID provided in the URL.";
+    error.value = 'No property ID provided in the URL.';
     loading.value = false;
     return;
   }
@@ -654,11 +644,11 @@ const fetchPropertyData = async () => {
   realEstateData.value = null;
   zillowData.value = null;
   loadingState.realEstate = true;
-
+  
   try {
     // Determine if the ID is a numeric ID or an encoded address
     const requestBody = {};
-
+    
     if (/^\d+$/.test(propertyId)) {
       // If it's numeric, use it as an ID
       requestBody.id = propertyId;
@@ -666,38 +656,34 @@ const fetchPropertyData = async () => {
       // Otherwise, assume it's an encoded address
       requestBody.address = decodeURIComponent(propertyId);
     }
-
+    
     // Call the Real Estate API through our server middleware
-    console.log(
-      `Fetching property details from Real Estate API for: ${propertyId}`
-    );
-    const response = await fetch("/api/real-estate/PropertyDetail", {
-      method: "POST",
+    console.log(`Fetching property details from Real Estate API for: ${propertyId}`);
+    const response = await fetch('/api/real-estate/PropertyDetail', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         ...requestBody,
-        comps: true,
-      }),
+        comps: true
+      })
     });
-
+    
     if (!response.ok) {
       throw new Error(`API Error: ${response.status}`);
     }
-
+    
     const data = await response.json();
-
+    
     if (!data || !data.data) {
-      throw new Error(
-        "Property data not found or incomplete response from API."
-      );
+      throw new Error('Property data not found or incomplete response from API.');
     }
-
+    
     console.log("Property details fetched successfully from Real Estate API");
     realEstateData.value = data.data;
     loadingState.realEstate = false;
-
+    
     // Fetch Zillow data if we have a valid address
     if (realEstateData.value?.propertyInfo?.address?.label) {
       fetchZillowData(realEstateData.value.propertyInfo.address.label);
@@ -705,12 +691,10 @@ const fetchPropertyData = async () => {
       // No valid address, skip Zillow API
       loading.value = false;
     }
+    
   } catch (err) {
-    console.error(
-      "Error during property data fetching from Real Estate API:",
-      err
-    );
-    error.value = err.message || "Failed to load property data.";
+    console.error('Error during property data fetching from Real Estate API:', err);
+    error.value = err.message || 'Failed to load property data.';
     loading.value = false;
     loadingState.realEstate = false;
   }
@@ -721,37 +705,41 @@ const fetchZillowData = async (formattedAddress) => {
     loading.value = false;
     return;
   }
-
+  
   loadingState.zillow = true;
-
+  
   try {
     console.log(`Finding Zillow property for address: ${formattedAddress}`);
-
+    
     // 1. First try to search for the property by address
     const encodedAddress = encodeURIComponent(formattedAddress);
     const searchWithParamsUrl = `https://${ZILLOW_API_HOST}/propertyExtendedSearch?location=${encodedAddress}`;
-
-    const searchData = await fetchWithRetry(searchWithParamsUrl, {
-      method: "GET",
-      headers: {
-        "X-RapidAPI-Key": zillowApiKey,
-        "X-RapidAPI-Host": ZILLOW_API_HOST,
-      },
-    });
+    
+    const searchData = await fetchWithRetry(
+      searchWithParamsUrl,
+      {
+        method: 'GET',
+        headers: {
+          'X-RapidAPI-Key': zillowApiKey, 
+          'X-RapidAPI-Host': ZILLOW_API_HOST
+        }
+      }
+    );
     if (!searchData.zpid) {
       console.log("no zpid found");
-      return;
+      return
     }
-
-    console.log(searchData.zpid);
+    
+    console.log(searchData.zpid)
     // 2. Get the first result's zpid
     const zpid = searchData.zpid;
     console.log(`Found Zillow property with zpid: ${zpid}`);
-
+    
     // Now fetch property details using zpid
     await fetchZillowPropertyDetails(zpid);
+    
   } catch (err) {
-    console.warn("Error finding Zillow property:", err);
+    console.warn('Error finding Zillow property:', err);
     // Don't set the main error - we still have Real Estate API data
     loadingState.zillow = false;
     loading.value = false;
@@ -764,47 +752,46 @@ const fetchZillowPropertyDetails = async (zpid) => {
     loading.value = false;
     return;
   }
-
+  
   try {
     // Wait a bit to avoid rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     // 1. Fetch property details
     console.log(`Fetching Zillow property details for zpid: ${zpid}`);
-
+    
     const fetchedPropertyData = await fetchWithRetry(
       `https://${ZILLOW_API_HOST}/property?zpid=${zpid}`,
       {
-        method: "GET",
-        headers: {
-          "X-RapidAPI-Key": zillowApiKey,
-          "X-RapidAPI-Host": ZILLOW_API_HOST,
-        },
+        method: 'GET',
+        headers: { 
+          'X-RapidAPI-Key': zillowApiKey, 
+          'X-RapidAPI-Host': ZILLOW_API_HOST 
+        }
       }
     );
-
+    
     if (!fetchedPropertyData || !fetchedPropertyData.zpid) {
-      throw new Error(
-        "Zillow property data not found or incomplete response from API."
-      );
+      throw new Error('Zillow property data not found or incomplete response from API.');
     }
-
+    
     console.log("Zillow property details fetched successfully");
-
+    
     // Create a temporary version with the main data
     zillowData.value = {
       ...fetchedPropertyData,
-      images: fetchedPropertyData.imgSrc ? [fetchedPropertyData.imgSrc] : [],
+      images: fetchedPropertyData.imgSrc ? [fetchedPropertyData.imgSrc] : []
     };
-
+    
     // Update loading state for images
     loadingState.zillow = false;
     loadingState.images = true;
-
+    
     // 2. Fetch images with its own try/catch to allow partial loading
     await fetchZillowImages(zpid, fetchedPropertyData);
+    
   } catch (err) {
-    console.error("Error during Zillow property data fetching:", err);
+    console.error('Error during Zillow property data fetching:', err);
     loadingState.zillow = false;
     loadingState.images = false;
     loading.value = false;
@@ -814,48 +801,41 @@ const fetchZillowPropertyDetails = async (zpid) => {
 const fetchZillowImages = async (zpid, propertyData) => {
   try {
     // Wait a bit before fetching images to respect rate limits
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     console.log(`Fetching Zillow images for zpid: ${zpid}`);
-
+    
     const imagesData = await fetchWithRetry(
       `https://${ZILLOW_API_HOST}/images?zpid=${zpid}`,
       {
-        method: "GET",
-        headers: {
-          "X-RapidAPI-Key": zillowApiKey,
-          "X-RapidAPI-Host": ZILLOW_API_HOST,
-        },
+        method: 'GET',
+        headers: { 
+          'X-RapidAPI-Key': zillowApiKey, 
+          'X-RapidAPI-Host': ZILLOW_API_HOST 
+        }
       }
     );
-
+    
     console.log("Zillow images fetched successfully");
-
-    if (
-      imagesData &&
-      Array.isArray(imagesData.images) &&
-      imagesData.images.length > 0
-    ) {
+    
+    if (imagesData && Array.isArray(imagesData.images) && imagesData.images.length > 0) {
       // Check if main image is already in the array
-      const mainImageExists = imagesData.images.some(
-        (img) => (img.url || img) === propertyData.imgSrc
+      const mainImageExists = imagesData.images.some(img => 
+        (img.url || img) === propertyData.imgSrc
       );
-
+      
       // Update property with images
       zillowData.value = {
         ...propertyData,
-        images: mainImageExists
-          ? imagesData.images
-          : propertyData.imgSrc
-          ? [propertyData.imgSrc, ...imagesData.images]
-          : imagesData.images,
+        images: mainImageExists 
+          ? imagesData.images 
+          : (propertyData.imgSrc 
+              ? [propertyData.imgSrc, ...imagesData.images] 
+              : imagesData.images)
       };
     }
   } catch (imageError) {
-    console.warn(
-      "Failed to fetch Zillow images, continuing with basic property data:",
-      imageError
-    );
+    console.warn('Failed to fetch Zillow images, continuing with basic property data:', imageError);
     // Don't rethrow - we still have the main property data
   } finally {
     // Update loading state when images operation completes
@@ -866,20 +846,16 @@ const fetchZillowImages = async (zpid, propertyData) => {
 
 // --- Lifecycle Hooks ---
 onMounted(() => {
-  console.log(
-    "Property page component mounted. Checking config and fetching data..."
-  );
-
+  console.log("Property page component mounted. Checking config and fetching data...");
+  
   // Validate configuration
   if (!mapboxToken) {
-    console.warn(
-      "Mapbox API token configuration is missing. Map will not display."
-    );
+    console.warn('Mapbox API token configuration is missing. Map will not display.');
   }
-
+  
   // Fetch property data
   fetchPropertyData();
-
+  
   // Initialize chat scroll
   scrollToBottom();
 });

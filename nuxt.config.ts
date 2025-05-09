@@ -6,6 +6,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     realEstateApiKey: process.env.REAL_ESTATE_API_KEY,
     realEstateUserId: process.env.REAL_ESTATE_USER_ID || 'UniqueUserIdentifier', // Add this
+    openaiApiKey: process.env.OPENAI_API_KEY,
     public: {
       MAPBOX_API_TOKEN: process.env.MAPBOX_API_TOKEN,
       ZILLOW_API_KEY: process.env.ZILLOW_API_KEY,

@@ -313,12 +313,10 @@
                   <img :src="computedListingAgentImage" alt="Agent photo" class="w-14 h-14 rounded-full object-cover border border-yellow-gold/30">
                 </div>
                 <div class="flex-grow">
+                  <span class="text-gray-400">Agent:</span>
                   <div class="font-bold text-white">{{ computedListingAgentName }}</div>
                   <div class="text-yellow-gold text-sm">{{ computedListingAgentBusinessName }}</div>
-                  <div class="flex items-center mt-1" v-if="computedListingAgentRating !== 'N/A'">
-                    <span class="text-yellow-gold mr-1">★</span>
-                    <span class="text-white text-sm">{{ computedListingAgentRating }}</span>
-                  </div>
+                  
                 </div>
               </div>
               
@@ -327,10 +325,7 @@
                 <span class="text-white font-medium">{{ computedListingAgentPhone }}</span>
               </div>
               
-              <div v-if="computedAgentInfo.badge_type" class="flex justify-between border-b border-yellow-gold/20 py-2 sm:col-span-2">
-                <span class="text-gray-400">Agent Type:</span>
-                <span class="text-white font-medium">{{ computedAgentInfo.badge_type }}</span>
-              </div>
+              
             </template>
             <template v-else>
               <div class="sm:col-span-2 text-gray-400 italic">

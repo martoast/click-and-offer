@@ -297,7 +297,7 @@
         <div class="bg-gradient-to-br from-black to-gray-900 rounded-lg border border-yellow-gold/30 p-6 shadow-lg">
           <h2 class="text-xl font-bold mb-4 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-yellow-gold" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 0 013-3c.295 0 .584.043.852.127z" />
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013-3c.295 0 .584.043.852.127z" />
             </svg>
             Owner & Agent Information
           </h2>
@@ -307,32 +307,41 @@
               <span class="text-white font-medium">{{ computedSellerName }}</span>
             </div>
             
-            <template v-if="computedMostRecentMlsEntry">
-              <div class="flex justify-between border-b border-yellow-gold/20 py-2">
-                <span class="text-gray-400">Listing Agent Name:</span>
-                <span class="text-white font-medium">{{ computedListingAgentName }}</span>
+            <template v-if="computedAgentInfo">
+              <div class="flex items-center border-b border-yellow-gold/20 py-3 sm:col-span-2">
+                <div class="flex-shrink-0 mr-3" v-if="computedListingAgentImage">
+                  <img :src="computedListingAgentImage" alt="Agent photo" class="w-14 h-14 rounded-full object-cover border border-yellow-gold/30">
+                </div>
+                <div class="flex-grow">
+                  <div class="font-bold text-white">{{ computedListingAgentName }}</div>
+                  <div class="text-yellow-gold text-sm">{{ computedListingAgentBusinessName }}</div>
+                  <div class="flex items-center mt-1" v-if="computedListingAgentRating !== 'N/A'">
+                    <span class="text-yellow-gold mr-1">★</span>
+                    <span class="text-white text-sm">{{ computedListingAgentRating }}</span>
+                  </div>
+                </div>
               </div>
-              <div class="flex justify-between border-b border-yellow-gold/20 py-2">
-                <span class="text-gray-400">Listing Agent Phone:</span>
+              
+              <div class="flex justify-between border-b border-yellow-gold/20 py-2 sm:col-span-2">
+                <span class="text-gray-400">Contact Number:</span>
                 <span class="text-white font-medium">{{ computedListingAgentPhone }}</span>
               </div>
-              <div class="flex justify-between border-b border-yellow-gold/20 py-2 sm:col-span-2">
-                <span class="text-gray-400">Listing Agent Email:</span>
-                <span class="text-white font-medium break-all">{{ computedListingAgentEmail }}</span>
+              
+              <div v-if="computedAgentInfo.badge_type" class="flex justify-between border-b border-yellow-gold/20 py-2 sm:col-span-2">
+                <span class="text-gray-400">Agent Type:</span>
+                <span class="text-white font-medium">{{ computedAgentInfo.badge_type }}</span>
               </div>
             </template>
             <template v-else>
               <div class="sm:col-span-2 text-gray-400 italic">
-                Listing agent information not available.
+                Agent information not available.
               </div>
             </template>
           </div>
         </div>
         
         <!-- Call To Action -->
-        <div
-          class="bg-gradient-to-br from-black to-gray-900 rounded-lg shadow-lg p-6 border border-yellow-gold/30"
-        >
+        <div class="bg-gradient-to-br from-black to-gray-900 rounded-lg shadow-lg p-6 border border-yellow-gold/30">
           <div class="flex items-center mb-3">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -347,16 +356,14 @@
               />
             </svg>
             <h3 class="text-white font-bold text-lg">
-              Ready to get under contract?
+              Ready to contact the agent?
             </h3>
           </div>
           <p class="text-gray-300 text-sm mb-4 pl-8">
-            Generate contracts and documents with our full-featured Contract System.
+            Generate a pre-formatted offer email to send to the listing agent.
           </p>
-          <a
-            :href="contractSystemUrl"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            @click="openModal"
             class="block w-full bg-gradient-to-r from-yellow-600 to-yellow-gold px-4 py-3 rounded-lg font-bold text-sm text-black hover:from-yellow-gold hover:to-yellow-gold-light transition-all duration-300 shadow-md border border-yellow-gold-dark/50 relative overflow-hidden group text-center"
           >
             <span class="relative z-10 flex items-center justify-center">
@@ -368,21 +375,136 @@
               >
                 <path
                   fill-rule="evenodd"
-                  d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 14.584l-4.419 2.23A1 1 0 014 16V4z"
+                  d="M3 8a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
                   clip-rule="evenodd"
                 />
               </svg>
-              Create Contract
+              Create Offer Email
               <span class="ml-2">→</span>
             </span>
             <span
               class="absolute inset-0 bg-gradient-to-r from-yellow-gold-light to-yellow-gold opacity-0 group-hover:opacity-30 transition-opacity duration-300"
             ></span>
-          </a>
+          </button>
         </div>
       </div>
     </div>
+    
+    <!-- Offer Email Modal -->
+    <div v-if="showModal" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center" @click="closeModalOnBackdropClick">
+      <div class="absolute inset-0 bg-black bg-opacity-70"></div>
+      
+      <div class="relative bg-gradient-to-br from-gray-900 to-black rounded-lg border border-yellow-gold/30 w-full max-w-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden" @click.stop>
+        <!-- Modal Header -->
+        <div class="p-4 border-b border-yellow-gold/30 flex justify-between items-center">
+          <h3 class="text-lg font-bold text-white">Offer Email Template for {{ computedPropertyAddress }}</h3>
+          <button @click="closeModal" class="text-gray-400 hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Modal Body - Make this section scrollable -->
+<div class="p-6 overflow-y-auto flex-1">
+  <div class="flex mb-4 gap-4">
+    <div class="flex-1">
+      <label class="block text-xs text-gray-400 mb-1">Your Name</label>
+      <input 
+        type="text" 
+        v-model="yourName" 
+        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        placeholder="Your Name"
+      />
+    </div>
+    <div class="flex-1">
+      <label class="block text-xs text-gray-400 mb-1">Purchase Price</label>
+      <input 
+        type="text" 
+        v-model="purchasePrice" 
+        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        :placeholder="computedFormattedPurchaseOrListingPrice"
+      />
+    </div>
   </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div>
+      <label class="block text-xs text-gray-400 mb-1">Cash to Seller</label>
+      <input 
+        type="text" 
+        v-model="cashToSeller" 
+        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        :placeholder="defaultCashToSeller"
+      />
+    </div>
+    <div>
+      <label class="block text-xs text-gray-400 mb-1">Agent Commission</label>
+      <input 
+        type="text" 
+        v-model="agentCommission" 
+        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        :placeholder="defaultAgentCommission"
+      />
+    </div>
+    <div>
+      <label class="block text-xs text-gray-400 mb-1">Loan Balance</label>
+      <div class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-400 text-sm">
+        {{ computedFormattedOpenLoanBalance }}
+      </div>
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div>
+      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Finance Note</label>
+      <input 
+        type="text" 
+        v-model="sellerNote" 
+        class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        placeholder="Enter amount"
+      />
+    </div>
+    <div>
+      <label class="block text-xs text-gray-400 mb-1 font-medium">Monthly to Seller</label>
+      <input 
+        type="text" 
+        v-model="monthlyToSeller" 
+        class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        placeholder="Enter monthly payment"
+      />
+    </div>
+  </div>
+  
+  <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700 text-gray-200 font-mono text-sm mb-4 whitespace-pre-wrap h-64 overflow-y-auto" ref="offerTextRef">{{ offerEmailText }}</div>
+</div>
+
+<!-- Modal Footer - Always visible at bottom -->
+<div class="p-4 border-t border-yellow-gold/30 bg-gray-900/50 flex justify-end space-x-4">
+  <button 
+    @click="copyOfferText" 
+    class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-black font-medium rounded-md flex items-center transition-colors"
+    :class="{ 'copied-animation': copied }"
+  >
+    <svg v-if="!copied" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+    </svg>
+    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+    </svg>
+    {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
+  </button>
+  <button 
+    @click="closeModal" 
+    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-md transition-colors"
+  >
+    Close
+  </button>
+</div>
+</div>
+</div>
+</div>
 </template>
 
 <script setup>
@@ -407,6 +529,19 @@ const NA_FALLBACK = "N/A";
 
 // --- Local State for Gallery ---
 const selectedImage = ref(null);
+
+// --- Local State for Modal ---
+const showModal = ref(false);
+const copied = ref(false);
+const offerTextRef = ref(null);
+
+// --- Customizable Fields ---
+const yourName = ref("");
+const purchasePrice = ref("");
+const cashToSeller = ref("");
+const agentCommission = ref("");
+const sellerNote = ref("");
+const monthlyToSeller = ref("");
 
 // --- Methods ---
 const formatPrice = (price) => {
@@ -453,19 +588,68 @@ const selectImage = (imageUrl) => {
   selectedImage.value = imageUrl;
 };
 
+// Open modal and prevent background scrolling
+const openModal = () => {
+  showModal.value = true;
+  document.body.classList.add('overflow-hidden');
+};
+
+// Close modal and restore background scrolling
+const closeModal = () => {
+  showModal.value = false;
+  document.body.classList.remove('overflow-hidden');
+};
+
+// Close modal when clicking on backdrop (outside the modal)
+const closeModalOnBackdropClick = (event) => {
+  if (event.target === event.currentTarget) {
+    closeModal();
+  }
+};
+
+// Copy text to clipboard function
+const copyOfferText = async () => {
+  try {
+    await navigator.clipboard.writeText(offerEmailText.value);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+    // Fallback for older browsers
+    if (offerTextRef.value) {
+      const range = document.createRange();
+      range.selectNode(offerTextRef.value);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+      copied.value = true;
+      setTimeout(() => {
+        copied.value = false;
+      }, 2000);
+    }
+  }
+};
+
 // --- Computed Properties for REAPI specific data ---
 const computedPropertyAddress = computed(() => {
-  return props.reapi_property?.propertyInfo?.address?.address || NA_FALLBACK;
+  return props.reapi_property?.propertyInfo?.address?.address || 
+         props.property?.streetAddress || 
+         (props.property?.address?.streetAddress || NA_FALLBACK);
 });
 
 const computedOpenLoanBalance = computed(() => {
-  const balance = props.reapi_property?.openMortgageBalance ?? props.reapi_property?.estimatedMortgageBalance;
+  const balance = props.reapi_property?.openMortgageBalance ?? 
+                  props.reapi_property?.estimatedMortgageBalance;
   return (balance !== undefined && balance !== null && String(balance).trim() !== "") ? Number(balance) : null;
 });
+
 const computedFormattedOpenLoanBalance = computed(() => formatPrice(computedOpenLoanBalance.value));
 
 const computedApn = computed(() => {
-  return props.reapi_property?.lotInfo?.apn || NA_FALLBACK;
+  return props.reapi_property?.lotInfo?.apn || props.property?.resoFacts?.parcelNumber || NA_FALLBACK;
 });
 
 const computedLegalDescription = computed(() => {
@@ -473,58 +657,177 @@ const computedLegalDescription = computed(() => {
 });
 
 const computedCounty = computed(() => {
-  return props.reapi_property?.propertyInfo?.address?.county || NA_FALLBACK;
+  return props.reapi_property?.propertyInfo?.address?.county || props.property?.county || NA_FALLBACK;
 });
 
 const computedSellerName = computed(() => {
   return props.reapi_property?.ownerInfo?.owner1FullName || NA_FALLBACK;
 });
 
-const computedMostRecentMlsEntry = computed(() => {
-  if (props.reapi_property?.mlsHistory && props.reapi_property.mlsHistory.length > 0) {
-    return props.reapi_property.mlsHistory[0];
+// Get agent information from contact_recipients
+const computedAgentInfo = computed(() => {
+  if (props.property?.contact_recipients && props.property.contact_recipients.length > 0) {
+    return props.property.contact_recipients[0];
   }
   return null;
 });
 
 const computedListingAgentName = computed(() => {
-  return computedMostRecentMlsEntry.value?.agentName || NA_FALLBACK; 
+  return computedAgentInfo.value?.display_name || NA_FALLBACK; 
+});
+
+const computedListingAgentBusinessName = computed(() => {
+  return computedAgentInfo.value?.business_name || NA_FALLBACK; 
 });
 
 const computedListingAgentPhone = computed(() => {
-  return computedMostRecentMlsEntry.value?.agentPhone || NA_FALLBACK;
+  if (computedAgentInfo.value?.phone) {
+    const phone = computedAgentInfo.value.phone;
+    return `(${phone.areacode}) ${phone.prefix}-${phone.number}` || NA_FALLBACK;
+  }
+  return NA_FALLBACK;
 });
 
-const computedListingAgentEmail = computed(() => {
-  return computedMostRecentMlsEntry.value?.agentEmail || NA_FALLBACK;
+const computedListingAgentRating = computed(() => {
+  return computedAgentInfo.value?.rating_average || NA_FALLBACK;
+});
+
+const computedListingAgentImage = computed(() => {
+  return computedAgentInfo.value?.image_url || null;
+});
+
+// Property value calculations
+const computedEstimatedValue = computed(() => {
+  return props.reapi_property?.estimatedValue || props.property?.zestimate || null;
 });
 
 const computedPurchaseOrListingPrice = computed(() => {
+  // First, check if we have a Zillow zestimate or REAPI estimated value
+  if (computedEstimatedValue.value) {
+    return computedEstimatedValue.value;
+  }
+
+  // Then check for MLS listing price in REAPI
   const reapi = props.reapi_property;
-  if (reapi) {
-    if (reapi.mlsListingPrice !== undefined && reapi.mlsListingPrice !== null && String(reapi.mlsListingPrice).trim() !== "" && !isNaN(Number(reapi.mlsListingPrice))) {
-      // Check if mlsListingPrice looks like a rental (e.g., < 10000 for a typical house)
-      // This threshold is arbitrary and might need adjustment based on your market
-      if (Number(reapi.mlsListingPrice) > 10000 || reapi.mlsType === 'ForSale') { // Basic check
-         return Number(reapi.mlsListingPrice);
-      }
-    }
-    if (reapi.estimatedValue !== undefined && reapi.estimatedValue !== null && String(reapi.estimatedValue).trim() !== "" && !isNaN(Number(reapi.estimatedValue))) {
-      return Number(reapi.estimatedValue);
-    }
-     // If mlsListingPrice was a small number (potential rental) and no estimatedValue, fallback to it if nothing else
-    if (reapi.mlsListingPrice !== undefined && reapi.mlsListingPrice !== null && String(reapi.mlsListingPrice).trim() !== "" && !isNaN(Number(reapi.mlsListingPrice))) {
-       return Number(reapi.mlsListingPrice);
+  if (reapi?.mlsListingPrice && !isNaN(Number(reapi.mlsListingPrice))) {
+    // Validate it's a sale price, not a rental (arbitrary threshold)
+    if (Number(reapi.mlsListingPrice) > 10000 || reapi.mlsType === 'ForSale') {
+      return Number(reapi.mlsListingPrice);
     }
   }
-  return null;
+  
+  // Check for price in Zillow data
+  if (props.property?.price && !isNaN(Number(props.property.price))) {
+    return Number(props.property.price);
+  }
+  
+  // Last resort - check last sale price
+  const lastSalePrice = props.property?.lastSalePrice || 
+                        (reapi?.lastSale?.saleAmount) || null;
+  
+  return lastSalePrice;
 });
+
 const computedFormattedPurchaseOrListingPrice = computed(() => formatPrice(computedPurchaseOrListingPrice.value));
 
+// Default calculated values for the form
+const defaultCashToSeller = computed(() => {
+  if (computedPurchaseOrListingPrice.value) {
+    // Default cash to seller is 20% of purchase price
+    return formatPrice(computedPurchaseOrListingPrice.value * 0.2);
+  }
+  return "Enter amount";
+});
 
-// --- Watchers ---
+const defaultAgentCommission = computed(() => {
+  if (computedPurchaseOrListingPrice.value) {
+    // Default commission is 3% of purchase price
+    return formatPrice(computedPurchaseOrListingPrice.value * 0.03);
+  }
+  return "Enter amount";
+});
+
+// Compute net to seller based on all values
+const computedNetToSeller = computed(() => {
+  // Start with purchase price
+  const purchaseAmount = purchasePrice.value ? 
+    parseFloat(purchasePrice.value.replace(/[^0-9.-]+/g, "")) : 
+    computedPurchaseOrListingPrice.value || 0;
+  
+  // Subtract agent commission
+  const commission = agentCommission.value ? 
+    parseFloat(agentCommission.value.replace(/[^0-9.-]+/g, "")) : 
+    (purchaseAmount * 0.03);
+  
+  // Calculate net
+  let netAmount = purchaseAmount - commission;
+  
+  return formatPrice(netAmount);
+});
+
+// Compute the email template text
+const offerEmailText = computed(() => {
+  // Property info
+  const address = computedPropertyAddress.value;
+  const agentName = computedListingAgentName.value;
+  
+  // Format loan balance - use existing or default to N/A
+  const loanBalance = computedFormattedOpenLoanBalance.value;
+  
+  // Calculate net to seller
+  const netToSeller = computedNetToSeller.value;
+  
+  // Use entered values or default to computed values
+  const formattedPurchasePrice = purchasePrice.value || computedFormattedPurchaseOrListingPrice.value;
+  const formattedCashToSeller = cashToSeller.value || defaultCashToSeller.value;
+  const formattedAgentCommission = agentCommission.value || defaultAgentCommission.value;
+  const formattedSellerNote = sellerNote.value || "N/A";
+  const formattedMonthlyToSeller = monthlyToSeller.value || "N/A";
+  const name = yourName.value || "Your Name";
+  
+  return `Hi ${agentName},
+
+Hope you're doing great. Please see the attached offer for ${address}:
+
+• Price: ${formattedPurchasePrice}
+• Cash to Seller: ${formattedCashToSeller}
+• Agent Commission: ${formattedAgentCommission}
+• Takeover Loan Balance: ${loanBalance}
+• Seller Finance Note: ${formattedSellerNote}
+• Monthly Payments to Seller: ${formattedMonthlyToSeller}
+• Net to Seller: ${netToSeller}
+• Closing: Within 30 days
+
+If you're interested, please forward the mortgage statement or any counter terms to help us move faster.
+
+For more info, visit our Transaction Guide:
+https://urcreativesolutions.info/
+
+Looking forward to working with you!
+
+Be Great,
+${name}`;
+});
+
+// Initialize fields on modal opening
+watch(showModal, (isVisible) => {
+  if (isVisible) {
+    // Pre-populate with defaults only if not already set
+    if (!purchasePrice.value) {
+      purchasePrice.value = computedFormattedPurchaseOrListingPrice.value;
+    }
+    if (!cashToSeller.value) {
+      cashToSeller.value = defaultCashToSeller.value;
+    }
+    if (!agentCommission.value) {
+      agentCommission.value = defaultAgentCommission.value;
+    }
+  }
+});
+
+// --- Image Gallery Watchers ---
 watch(
-  () => props.property, // Assuming props.property contains the images (likely from Zillow)
+  () => props.property,
   (newVal) => {
     if (newVal && newVal.imgSrc) {
       selectedImage.value = newVal.imgSrc;
@@ -544,10 +847,55 @@ watch(
 .property-display {
   @apply text-white;
 }
+
 /* Print styles for map */
 @media print {
   .map-container-class {
     page-break-inside: avoid;
   }
+}
+
+/* Modal animations */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Custom scrollbar for offer text */
+.whitespace-pre-wrap::-webkit-scrollbar {
+  width: 6px;
+}
+
+.whitespace-pre-wrap::-webkit-scrollbar-track {
+  background: #2d3748;
+  border-radius: 8px;
+}
+
+.whitespace-pre-wrap::-webkit-scrollbar-thumb {
+  background-color: #d69e2e;
+  border-radius: 8px;
+}
+
+/* Copy button animation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.copied-animation {
+  animation: pulse 0.4s ease-in-out;
 }
 </style>

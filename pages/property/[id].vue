@@ -78,7 +78,7 @@
       />
 
       <!-- Investment Opportunity Section -->
-      <InvestmentOpportunity :property="zillowData" />
+      <InvestmentOpportunity :property="zillowData" :reapi_property="realEstateData" />
     </div>
 
     <div v-else-if="!loading && !error" class="container mx-auto px-4 py-12 text-center text-slate-400 italic">

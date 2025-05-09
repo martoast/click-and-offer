@@ -1578,6 +1578,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  reapi_property: { // Specific REAPI data
+    type: Object,
+    required: true,
+  },
 });
 
 // --- Scenario Selection ---
@@ -1744,22 +1748,32 @@ const calculateBalloonPayment = (
 };
 
 // Function to auto-fill mortgage data if available
+// Function to auto-fill mortgage data if available
 const autoFillMortgageData = () => {
-  // Check if property has mortgage data
-  if (props.property && props.property.mortgage) {
-    // Fill in existing loan balance if available
-    if (props.property.mortgage.balance) {
-      subtoInputs.existingLoanBalance = Number(props.property.mortgage.balance);
+  // Check if reapi_property data is available
+  if (props.reapi_property) {
+    // Fill in existing loan balance from estimatedMortgageBalance or openMortgageBalance
+    if (props.reapi_property.estimatedMortgageBalance) {
+      subtoInputs.existingLoanBalance = Number(props.reapi_property.estimatedMortgageBalance);
+    } else if (props.reapi_property.openMortgageBalance) {
+      subtoInputs.existingLoanBalance = Number(props.reapi_property.openMortgageBalance);
     }
-
-    // Fill in monthly payment if available
-    if (props.property.mortgage.monthlyPayment) {
-      subtoInputs.existingLoanPITI = Number(
-        props.property.mortgage.monthlyPayment
-      );
+    
+    // Fill in monthly payment from estimatedMortgagePayment
+    if (props.reapi_property.estimatedMortgagePayment) {
+      subtoInputs.existingLoanPITI = Number(props.reapi_property.estimatedMortgagePayment);
+    }
+    
+    // If we didn't find the data in the main object, check currentMortgages array
+    if (!subtoInputs.existingLoanBalance && props.reapi_property.currentMortgages?.length) {
+      // Use the first mortgage (typically the primary one)
+      const primaryMortgage = props.reapi_property.currentMortgages[0];
+      if (primaryMortgage.amount) {
+        subtoInputs.existingLoanBalance = Number(primaryMortgage.amount);
+      }
     }
   } else {
-    alert("No mortgage information available for this property.");
+    alert("No REAPI property information available.");
   }
 };
 

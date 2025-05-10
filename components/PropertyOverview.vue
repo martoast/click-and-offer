@@ -288,8 +288,6 @@
               <span class="text-gray-400">Loan Maturity Date:</span>
               <span class="text-white font-medium">{{ formatDate(reapi_property.currentMortgages[0].maturityDate) || "N/A" }}</span>
             </div>
-            
-           
           </div>
         </div>
         
@@ -316,7 +314,6 @@
                   <span class="text-gray-400">Agent:</span>
                   <div class="font-bold text-white">{{ computedListingAgentName }}</div>
                   <div class="text-yellow-gold text-sm">{{ computedListingAgentBusinessName }}</div>
-                  
                 </div>
               </div>
               
@@ -324,8 +321,6 @@
                 <span class="text-gray-400">Contact Number:</span>
                 <span class="text-white font-medium">{{ computedListingAgentPhone }}</span>
               </div>
-              
-              
             </template>
             <template v-else>
               <div class="sm:col-span-2 text-gray-400 italic">
@@ -413,7 +408,19 @@
       />
     </div>
     <div class="flex-1">
-      <label class="block text-xs text-gray-400 mb-1">Purchase Price</label>
+      <label class="block text-xs text-gray-400 mb-1">Agent's Email</label>
+      <input 
+        type="text" 
+        v-model="agentEmail" 
+        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        placeholder="Enter agent's email"
+      />
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label class="block text-xs text-gray-400 mb-1">Purchase/Listing Price</label>
       <input 
         type="text" 
         v-model="purchasePrice" 
@@ -421,11 +428,20 @@
         :placeholder="computedFormattedPurchaseOrListingPrice"
       />
     </div>
+    <div>
+      <label class="block text-xs text-gray-400 mb-1">Open Loan Balance</label>
+      <input 
+        type="text" 
+        v-model="openLoanBalance" 
+        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        :placeholder="computedFormattedOpenLoanBalance"
+      />
+    </div>
   </div>
   
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
     <div>
-      <label class="block text-xs text-gray-400 mb-1">Cash to Seller</label>
+      <label class="block text-xs text-gray-400 mb-1">Cash to Seller at Closing</label>
       <input 
         type="text" 
         v-model="cashToSeller" 
@@ -434,37 +450,31 @@
       />
     </div>
     <div>
-      <label class="block text-xs text-gray-400 mb-1">Agent Commission</label>
+      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Carryback Amount</label>
       <input 
         type="text" 
-        v-model="agentCommission" 
-        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        :placeholder="defaultAgentCommission"
+        v-model="sellerCarrybackAmount" 
+        class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
+        placeholder="Enter amount"
       />
-    </div>
-    <div>
-      <label class="block text-xs text-gray-400 mb-1">Loan Balance</label>
-      <div class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-gray-400 text-sm">
-        {{ computedFormattedOpenLoanBalance }}
-      </div>
     </div>
   </div>
   
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
     <div>
-      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Finance Note</label>
+      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Carryback Interest Rate</label>
       <input 
         type="text" 
-        v-model="sellerNote" 
+        v-model="sellerCarrybackInterestRate" 
         class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        placeholder="Enter amount"
+        placeholder="Enter rate (e.g. 5%)"
       />
     </div>
     <div>
-      <label class="block text-xs text-gray-400 mb-1 font-medium">Monthly to Seller</label>
+      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Carryback Monthly Payments</label>
       <input 
         type="text" 
-        v-model="monthlyToSeller" 
+        v-model="sellerCarrybackMonthlyPayments" 
         class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
         placeholder="Enter monthly payment"
       />
@@ -534,9 +544,11 @@ const offerTextRef = ref(null);
 const yourName = ref("");
 const purchasePrice = ref("");
 const cashToSeller = ref("");
-const agentCommission = ref("");
-const sellerNote = ref("");
-const monthlyToSeller = ref("");
+const agentEmail = ref("");
+const openLoanBalance = ref("");
+const sellerCarrybackAmount = ref("");
+const sellerCarrybackInterestRate = ref("");
+const sellerCarrybackMonthlyPayments = ref("");
 
 // --- Methods ---
 const formatPrice = (price) => {
@@ -734,66 +746,37 @@ const defaultCashToSeller = computed(() => {
   return "Enter amount";
 });
 
-const defaultAgentCommission = computed(() => {
-  if (computedPurchaseOrListingPrice.value) {
-    // Default commission is 3% of purchase price
-    return formatPrice(computedPurchaseOrListingPrice.value * 0.03);
-  }
-  return "Enter amount";
-});
-
-// Compute net to seller based on all values
-const computedNetToSeller = computed(() => {
-  // Start with purchase price
-  const purchaseAmount = purchasePrice.value ? 
-    parseFloat(purchasePrice.value.replace(/[^0-9.-]+/g, "")) : 
-    computedPurchaseOrListingPrice.value || 0;
-  
-  // Subtract agent commission
-  const commission = agentCommission.value ? 
-    parseFloat(agentCommission.value.replace(/[^0-9.-]+/g, "")) : 
-    (purchaseAmount * 0.03);
-  
-  // Calculate net
-  let netAmount = purchaseAmount - commission;
-  
-  return formatPrice(netAmount);
-});
-
 // Compute the email template text
 const offerEmailText = computed(() => {
   // Property info
   const address = computedPropertyAddress.value;
   const agentName = computedListingAgentName.value;
-  
-  // Format loan balance - use existing or default to N/A
-  const loanBalance = computedFormattedOpenLoanBalance.value;
-  
-  // Calculate net to seller
-  const netToSeller = computedNetToSeller.value;
+  const ownerName = computedSellerName.value;
+  const recipientName = agentName !== NA_FALLBACK ? agentName : ownerName;
   
   // Use entered values or default to computed values
   const formattedPurchasePrice = purchasePrice.value || computedFormattedPurchaseOrListingPrice.value;
+  const formattedOpenLoanBalance = openLoanBalance.value || computedFormattedOpenLoanBalance.value;
   const formattedCashToSeller = cashToSeller.value || defaultCashToSeller.value;
-  const formattedAgentCommission = agentCommission.value || defaultAgentCommission.value;
-  const formattedSellerNote = sellerNote.value || "N/A";
-  const formattedMonthlyToSeller = monthlyToSeller.value || "N/A";
+  const formattedSellerCarrybackAmount = sellerCarrybackAmount.value || "N/A";
+  const formattedSellerCarrybackInterestRate = sellerCarrybackInterestRate.value || "N/A";
+  const formattedSellerCarrybackMonthlyPayments = sellerCarrybackMonthlyPayments.value || "N/A";
+  const formattedAgentEmail = agentEmail.value || "N/A";
   const name = yourName.value || "Your Name";
   
-  return `Hi ${agentName},
+  return `Hi ${recipientName},
 
 Hope you're doing great. Please see the attached offer for ${address}:
 
-• Price: ${formattedPurchasePrice}
-• Cash to Seller: ${formattedCashToSeller}
-• Agent Commission: ${formattedAgentCommission}
-• Takeover Loan Balance: ${loanBalance}
-• Seller Finance Note: ${formattedSellerNote}
-• Monthly Payments to Seller: ${formattedMonthlyToSeller}
-• Net to Seller: ${netToSeller}
-• Closing: Within 30 days
+•    Purchase Price / Listing Price: ${formattedPurchasePrice}
+•    Open Loan Balance: ${formattedOpenLoanBalance}
+•    Cash to Seller at Closing: ${formattedCashToSeller}
+•    Seller Carryback Amount: ${formattedSellerCarrybackAmount}
+•    Seller Carryback Interest Rate: ${formattedSellerCarrybackInterestRate}
+•    Seller Carryback Monthly Payments: ${formattedSellerCarrybackMonthlyPayments}
+•    Listing Agent's Email: ${formattedAgentEmail}
 
-If you're interested, please forward the mortgage statement or any counter terms to help us move faster.
+If you're interested, please forward the mortgage statement if applicable or any counter terms to help us move faster.
 
 For more info, visit our Transaction Guide:
 https://urcreativesolutions.info/
@@ -811,11 +794,11 @@ watch(showModal, (isVisible) => {
     if (!purchasePrice.value) {
       purchasePrice.value = computedFormattedPurchaseOrListingPrice.value;
     }
+    if (!openLoanBalance.value) {
+      openLoanBalance.value = computedFormattedOpenLoanBalance.value;
+    }
     if (!cashToSeller.value) {
       cashToSeller.value = defaultCashToSeller.value;
-    }
-    if (!agentCommission.value) {
-      agentCommission.value = defaultAgentCommission.value;
     }
   }
 });

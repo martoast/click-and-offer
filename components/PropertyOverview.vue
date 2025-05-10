@@ -380,140 +380,26 @@
       </div>
     </div>
     
-    <!-- Offer Email Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center" @click="closeModalOnBackdropClick">
-      <div class="absolute inset-0 bg-black bg-opacity-70"></div>
-      
-      <div class="relative bg-gradient-to-br from-gray-900 to-black rounded-lg border border-yellow-gold/30 w-full max-w-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden" @click.stop>
-        <!-- Modal Header -->
-        <div class="p-4 border-b border-yellow-gold/30 flex justify-between items-center">
-          <h3 class="text-lg font-bold text-white">Offer Email Template for {{ computedPropertyAddress }}</h3>
-          <button @click="closeModal" class="text-gray-400 hover:text-white transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <!-- Modal Body - Make this section scrollable -->
-<div class="p-6 overflow-y-auto flex-1">
-  <div class="flex mb-4 gap-4">
-    <div class="flex-1">
-      <label class="block text-xs text-gray-400 mb-1">Your Name</label>
-      <input 
-        type="text" 
-        v-model="yourName" 
-        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        placeholder="Your Name"
-      />
-    </div>
-    <div class="flex-1">
-      <label class="block text-xs text-gray-400 mb-1">Agent's Email</label>
-      <input 
-        type="text" 
-        v-model="agentEmail" 
-        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        placeholder="Enter agent's email"
-      />
-    </div>
+    <!-- Offer Email Modal Component -->
+    <OfferEmailModal 
+      v-model:showModal="showModal" 
+      :apn="computedApn"
+      :county="computedCounty"
+      :propertyAddress="computedPropertyAddress"
+      :sellerName="computedSellerName"
+      :listingAgentName="computedListingAgentName"
+      :formattedPurchaseOrListingPrice="computedFormattedPurchaseOrListingPrice"
+      :formattedOpenLoanBalance="computedFormattedOpenLoanBalance"
+      :estimatedValue="computedEstimatedValue"
+      :legalDescription="computedLegalDescription"
+      :agentPhone="computedListingAgentPhone"
+    />
   </div>
-  
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-    <div>
-      <label class="block text-xs text-gray-400 mb-1">Purchase/Listing Price</label>
-      <input 
-        type="text" 
-        v-model="purchasePrice" 
-        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        :placeholder="computedFormattedPurchaseOrListingPrice"
-      />
-    </div>
-    <div>
-      <label class="block text-xs text-gray-400 mb-1">Open Loan Balance</label>
-      <input 
-        type="text" 
-        v-model="openLoanBalance" 
-        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        :placeholder="computedFormattedOpenLoanBalance"
-      />
-    </div>
-  </div>
-  
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-    <div>
-      <label class="block text-xs text-gray-400 mb-1">Cash to Seller at Closing</label>
-      <input 
-        type="text" 
-        v-model="cashToSeller" 
-        class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        :placeholder="defaultCashToSeller"
-      />
-    </div>
-    <div>
-      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Carryback Amount</label>
-      <input 
-        type="text" 
-        v-model="sellerCarrybackAmount" 
-        class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        placeholder="Enter amount"
-      />
-    </div>
-  </div>
-  
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-    <div>
-      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Carryback Interest Rate</label>
-      <input 
-        type="text" 
-        v-model="sellerCarrybackInterestRate" 
-        class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        placeholder="Enter rate (e.g. 5%)"
-      />
-    </div>
-    <div>
-      <label class="block text-xs text-gray-400 mb-1 font-medium">Seller Carryback Monthly Payments</label>
-      <input 
-        type="text" 
-        v-model="sellerCarrybackMonthlyPayments" 
-        class="w-full bg-gray-800 border border-yellow-600 rounded-md px-3 py-2 text-white text-sm focus:border-yellow-600 focus:outline-none"
-        placeholder="Enter monthly payment"
-      />
-    </div>
-  </div>
-  
-  <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700 text-gray-200 font-mono text-sm mb-4 whitespace-pre-wrap h-64 overflow-y-auto" ref="offerTextRef">{{ offerEmailText }}</div>
-</div>
-
-<!-- Modal Footer - Always visible at bottom -->
-<div class="p-4 border-t border-yellow-gold/30 bg-gray-900/50 flex justify-end space-x-4">
-  <button 
-    @click="copyOfferText" 
-    class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-black font-medium rounded-md flex items-center transition-colors"
-    :class="{ 'copied-animation': copied }"
-  >
-    <svg v-if="!copied" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-    </svg>
-    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-    </svg>
-    {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
-  </button>
-  <button 
-    @click="closeModal" 
-    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-md transition-colors"
-  >
-    Close
-  </button>
-</div>
-</div>
-</div>
-</div>
 </template>
 
 <script setup>
 import { ref, watch, computed } from "vue";
+import OfferEmailModal from './OfferEmailModal.vue';
 
 const props = defineProps({
   property: { // Assuming this is primarily Zillow data or a general merged object for display
@@ -537,18 +423,6 @@ const selectedImage = ref(null);
 
 // --- Local State for Modal ---
 const showModal = ref(false);
-const copied = ref(false);
-const offerTextRef = ref(null);
-
-// --- Customizable Fields ---
-const yourName = ref("");
-const purchasePrice = ref("");
-const cashToSeller = ref("");
-const agentEmail = ref("");
-const openLoanBalance = ref("");
-const sellerCarrybackAmount = ref("");
-const sellerCarrybackInterestRate = ref("");
-const sellerCarrybackMonthlyPayments = ref("");
 
 // --- Methods ---
 const formatPrice = (price) => {
@@ -595,49 +469,9 @@ const selectImage = (imageUrl) => {
   selectedImage.value = imageUrl;
 };
 
-// Open modal and prevent background scrolling
+// Open modal
 const openModal = () => {
   showModal.value = true;
-  document.body.classList.add('overflow-hidden');
-};
-
-// Close modal and restore background scrolling
-const closeModal = () => {
-  showModal.value = false;
-  document.body.classList.remove('overflow-hidden');
-};
-
-// Close modal when clicking on backdrop (outside the modal)
-const closeModalOnBackdropClick = (event) => {
-  if (event.target === event.currentTarget) {
-    closeModal();
-  }
-};
-
-// Copy text to clipboard function
-const copyOfferText = async () => {
-  try {
-    await navigator.clipboard.writeText(offerEmailText.value);
-    copied.value = true;
-    setTimeout(() => {
-      copied.value = false;
-    }, 2000);
-  } catch (err) {
-    console.error('Failed to copy text: ', err);
-    // Fallback for older browsers
-    if (offerTextRef.value) {
-      const range = document.createRange();
-      range.selectNode(offerTextRef.value);
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(range);
-      document.execCommand('copy');
-      window.getSelection().removeAllRanges();
-      copied.value = true;
-      setTimeout(() => {
-        copied.value = false;
-      }, 2000);
-    }
-  }
 };
 
 // --- Computed Properties for REAPI specific data ---
@@ -682,6 +516,7 @@ const computedAgentInfo = computed(() => {
 const computedListingAgentName = computed(() => {
   return computedAgentInfo.value?.display_name || NA_FALLBACK; 
 });
+
 
 const computedListingAgentBusinessName = computed(() => {
   return computedAgentInfo.value?.business_name || NA_FALLBACK; 
@@ -737,72 +572,6 @@ const computedPurchaseOrListingPrice = computed(() => {
 
 const computedFormattedPurchaseOrListingPrice = computed(() => formatPrice(computedPurchaseOrListingPrice.value));
 
-// Default calculated values for the form
-const defaultCashToSeller = computed(() => {
-  if (computedPurchaseOrListingPrice.value) {
-    // Default cash to seller is 20% of purchase price
-    return formatPrice(computedPurchaseOrListingPrice.value * 0.2);
-  }
-  return "Enter amount";
-});
-
-// Compute the email template text
-const offerEmailText = computed(() => {
-  // Property info
-  const address = computedPropertyAddress.value;
-  const agentName = computedListingAgentName.value;
-  const ownerName = computedSellerName.value;
-  const recipientName = agentName !== NA_FALLBACK ? agentName : ownerName;
-  
-  // Use entered values or default to computed values
-  const formattedPurchasePrice = purchasePrice.value || computedFormattedPurchaseOrListingPrice.value;
-  const formattedOpenLoanBalance = openLoanBalance.value || computedFormattedOpenLoanBalance.value;
-  const formattedCashToSeller = cashToSeller.value || defaultCashToSeller.value;
-  const formattedSellerCarrybackAmount = sellerCarrybackAmount.value || "N/A";
-  const formattedSellerCarrybackInterestRate = sellerCarrybackInterestRate.value || "N/A";
-  const formattedSellerCarrybackMonthlyPayments = sellerCarrybackMonthlyPayments.value || "N/A";
-  const formattedAgentEmail = agentEmail.value || "N/A";
-  const name = yourName.value || "Your Name";
-  
-  return `Hi ${recipientName},
-
-Hope you're doing great. Please see the attached offer for ${address}:
-
-•    Purchase Price / Listing Price: ${formattedPurchasePrice}
-•    Open Loan Balance: ${formattedOpenLoanBalance}
-•    Cash to Seller at Closing: ${formattedCashToSeller}
-•    Seller Carryback Amount: ${formattedSellerCarrybackAmount}
-•    Seller Carryback Interest Rate: ${formattedSellerCarrybackInterestRate}
-•    Seller Carryback Monthly Payments: ${formattedSellerCarrybackMonthlyPayments}
-•    Listing Agent's Email: ${formattedAgentEmail}
-
-If you're interested, please forward the mortgage statement if applicable or any counter terms to help us move faster.
-
-For more info, visit our Transaction Guide:
-https://urcreativesolutions.info/
-
-Looking forward to working with you!
-
-Be Great,
-${name}`;
-});
-
-// Initialize fields on modal opening
-watch(showModal, (isVisible) => {
-  if (isVisible) {
-    // Pre-populate with defaults only if not already set
-    if (!purchasePrice.value) {
-      purchasePrice.value = computedFormattedPurchaseOrListingPrice.value;
-    }
-    if (!openLoanBalance.value) {
-      openLoanBalance.value = computedFormattedOpenLoanBalance.value;
-    }
-    if (!cashToSeller.value) {
-      cashToSeller.value = defaultCashToSeller.value;
-    }
-  }
-});
-
 // --- Image Gallery Watchers ---
 watch(
   () => props.property,
@@ -831,49 +600,5 @@ watch(
   .map-container-class {
     page-break-inside: avoid;
   }
-}
-
-/* Modal animations */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-/* Custom scrollbar for offer text */
-.whitespace-pre-wrap::-webkit-scrollbar {
-  width: 6px;
-}
-
-.whitespace-pre-wrap::-webkit-scrollbar-track {
-  background: #2d3748;
-  border-radius: 8px;
-}
-
-.whitespace-pre-wrap::-webkit-scrollbar-thumb {
-  background-color: #d69e2e;
-  border-radius: 8px;
-}
-
-/* Copy button animation */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.copied-animation {
-  animation: pulse 0.4s ease-in-out;
 }
 </style>

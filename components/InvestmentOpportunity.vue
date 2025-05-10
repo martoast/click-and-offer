@@ -1569,9 +1569,9 @@
     </div>
   </div>
 </template>
-
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
+import { useInvestmentCalculatorStore } from "~/stores/investmentCalculator";
 
 const props = defineProps({
   property: {
@@ -1584,75 +1584,20 @@ const props = defineProps({
   },
 });
 
+// Initialize the Pinia store
+const store = useInvestmentCalculatorStore();
+
 // --- Scenario Selection ---
 const scenarios = [
   { id: "SellerFinancing", name: "Seller Financing" },
   { id: "Subto", name: "Subject-To / Hybrid" },
   { id: "Cash", name: "Cash Offer" },
 ];
-const selectedScenario = ref("SellerFinancing"); // Default scenario
 
-// --- State for Tracking Manual Overrides ---
-const sfPriceManuallySet = ref(false);
-const sfDownPaymentManuallySet = ref(false);
-const cashPriceManuallySet = ref(false);
-
-// --- State for Amortization Schedule ---
-const showAmortizationSchedule = ref(false);
-const toggleAmortizationSchedule = () => {
-  showAmortizationSchedule.value = !showAmortizationSchedule.value;
-};
-
-// --- Input State (Separate object per scenario) ---
-const subtoInputs = reactive({
-  purchasePrice: 0,
-  existingLoanBalance: null, // Trigger for Subto visibility
-  cashToSeller: 0,
-  existingLoanPITI: null,
-  sellerCarryRate: 5,
-  sellerCarryTerm: 30, // Changed default to 30 years (full amortization)
-  balloonTerm: 5, // New field for balloon payment term
-  closingCostsPercent: 2.5,
-  closingCostsPaidBy: "Buyer",
-  commissionPercent: 6,
-  commissionPaidBy: "Seller",
-  monthlyRent: 0,
-  vacancyRate: 5,
-  maintenanceRate: 5,
-  managementRate: 8,
-});
-
-const sellerFinancingInputs = reactive({
-  purchasePrice: 0,
-  downPaymentPercent: 6, // Default
-  sellerRate: 6, // Example default
-  sellerTerm: 30, // Changed to 30 years (full amortization)
-  balloonTerm: 5, // New field for balloon payment term
-  closingCostsPercent: 3,
-  closingCostsPaidBy: "Buyer",
-  commissionPercent: 6,
-  commissionPaidBy: "Seller",
-  monthlyRent: 0,
-  propertyTax: 0,
-  insurance: 0,
-  vacancyRate: 5,
-  maintenanceRate: 5,
-  managementRate: 8,
-});
-
-const cashOfferInputs = reactive({
-  offerPrice: 0,
-  closingCostsPercent: 1.5, // Often lower for cash
-  closingCostsPaidBy: "Buyer",
-  monthlyRent: 0,
-  propertyTax: 0,
-  insurance: 0,
-  vacancyRate: 5,
-  maintenanceRate: 5,
-  managementRate: 8,
-  customAmount1: 0, // New custom amount field
-  customAmount2: 0, // New custom amount field
-  notes: "", // New notes field
+// Sync component data with the store
+const selectedScenario = computed({
+  get: () => store.selectedScenario,
+  set: (value) => store.setSelectedScenario(value)
 });
 
 // --- Helper Functions ---
@@ -1664,506 +1609,107 @@ const formatPrice = (price) => {
     maximumFractionDigits: 0,
   }).format(Number(price));
 };
+
 const formatNumber = (num) => {
   if (num == null || isNaN(Number(num))) return "N/A";
   return new Intl.NumberFormat("en-US").format(Number(num));
 };
 
-// Enhanced mortgage payment calculator with principal/interest breakdown
-const calculateMortgagePayment = (principal, annualRatePercent, termYears) => {
-  if (!principal || principal <= 0 || !termYears || termYears <= 0)
-    return { payment: 0, principal: 0, interest: 0 };
+// Toggle amortization schedule visibility
+const showAmortizationSchedule = computed({
+  get: () => store.showAmortizationSchedule,
+  set: () => store.toggleAmortizationSchedule()
+});
 
-  // Ensure rate is treated as 0 if null/undefined
-  const rate = annualRatePercent == null ? 0 : annualRatePercent;
-  const monthlyRate = rate / 100 / 12;
-  const numberOfPayments = termYears * 12;
-
-  if (monthlyRate === 0) {
-    // Handle 0% interest rate
-    const payment = numberOfPayments > 0 ? principal / numberOfPayments : 0;
-    return { payment, principal: payment, interest: 0 };
-  }
-
-  // Standard mortgage formula
-  const factor = Math.pow(1 + monthlyRate, numberOfPayments);
-  const payment = (principal * (monthlyRate * factor)) / (factor - 1);
-
-  // Calculate first month's interest
-  const interest = principal * monthlyRate;
-  const principalPayment = payment - interest;
-
-  return {
-    payment,
-    principal: principalPayment,
-    interest,
-  };
+const toggleAmortizationSchedule = () => {
+  store.toggleAmortizationSchedule();
 };
 
-// Calculate balloon payment amount
-const calculateBalloonPayment = (
-  loanAmount,
-  annualRatePercent,
-  fullTermYears,
-  balloonTermYears
-) => {
-  if (
-    !loanAmount ||
-    loanAmount <= 0 ||
-    !fullTermYears ||
-    fullTermYears <= 0 ||
-    !balloonTermYears
-  )
-    return 0;
-  if (balloonTermYears >= fullTermYears) return 0; // No balloon if term equals or exceeds full amortization
+// --- Create computed properties for two-way binding with inputs ---
+// Subject-To inputs
+const subtoInputs = computed({
+  get: () => store.subtoInputs,
+  set: (newValues) => store.updateSubtoInputs(newValues)
+});
 
-  const rate = annualRatePercent == null ? 0 : annualRatePercent;
-  const monthlyRate = rate / 100 / 12;
+// Seller Financing inputs
+const sellerFinancingInputs = computed({
+  get: () => store.sellerFinancingInputs,
+  set: (newValues) => store.updateSellerFinancingInputs(newValues)
+});
 
-  if (monthlyRate === 0) {
-    // Handle 0% interest rate
-    const monthlyPayment = loanAmount / (fullTermYears * 12);
-    const paidAmount = monthlyPayment * (balloonTermYears * 12);
-    return loanAmount - paidAmount;
-  }
+// Cash Offer inputs
+const cashOfferInputs = computed({
+  get: () => store.cashOfferInputs,
+  set: (newValues) => store.updateCashOfferInputs(newValues)
+});
 
-  // Calculate regular monthly payment based on full amortization
-  const monthlyPayment = calculateMortgagePayment(
-    loanAmount,
-    annualRatePercent,
-    fullTermYears
-  ).payment;
+// --- Manual Override Tracking ---
+const sfPriceManuallySet = computed({
+  get: () => store.sfPriceManuallySet,
+  set: (value) => store.setSfPriceManuallySet(value)
+});
 
-  // Calculate remaining balance after balloon term
-  let balance = loanAmount;
-  const balloonMonths = balloonTermYears * 12;
+const sfDownPaymentManuallySet = computed({
+  get: () => store.sfDownPaymentManuallySet,
+  set: (value) => store.setSfDownPaymentManuallySet(value)
+});
 
-  for (let i = 0; i < balloonMonths; i++) {
-    const interestPart = balance * monthlyRate;
-    const principalPart = monthlyPayment - interestPart;
-    balance -= principalPart;
-  }
+const cashPriceManuallySet = computed({
+  get: () => store.cashPriceManuallySet,
+  set: (value) => store.setCashPriceManuallySet(value)
+});
 
-  return Math.max(0, balance);
-};
-
-// Function to auto-fill mortgage data if available
 // Function to auto-fill mortgage data if available
 const autoFillMortgageData = () => {
-  // Check if reapi_property data is available
-  if (props.reapi_property) {
-    // Fill in existing loan balance from estimatedMortgageBalance or openMortgageBalance
-    if (props.reapi_property.estimatedMortgageBalance) {
-      subtoInputs.existingLoanBalance = Number(props.reapi_property.estimatedMortgageBalance);
-    } else if (props.reapi_property.openMortgageBalance) {
-      subtoInputs.existingLoanBalance = Number(props.reapi_property.openMortgageBalance);
-    }
-    
-    // Fill in monthly payment from estimatedMortgagePayment
-    if (props.reapi_property.estimatedMortgagePayment) {
-      subtoInputs.existingLoanPITI = Number(props.reapi_property.estimatedMortgagePayment);
-    }
-    
-    // If we didn't find the data in the main object, check currentMortgages array
-    if (!subtoInputs.existingLoanBalance && props.reapi_property.currentMortgages?.length) {
-      // Use the first mortgage (typically the primary one)
-      const primaryMortgage = props.reapi_property.currentMortgages[0];
-      if (primaryMortgage.amount) {
-        subtoInputs.existingLoanBalance = Number(primaryMortgage.amount);
-      }
-    }
-  } else {
-    alert("No REAPI property information available.");
-  }
+  store.autoFillMortgageData();
 };
 
-// --- Watcher for Pre-filling ---
+// Get calculated values from the store
+const subtoCalculated = computed(() => store.subtoCalculated);
+const sellerFinancingCalculated = computed(() => store.sellerFinancingCalculated);
+const cashOfferCalculated = computed(() => store.cashOfferCalculated);
+const sellerFinancingAmortizationSchedule = computed(() => store.sellerFinancingAmortizationSchedule);
+const subtoAmortizationSchedule = computed(() => store.subtoAmortizationSchedule);
+
+// Watch for property changes and update the store
 watch(
   () => props.property,
   (newVal) => {
     if (!newVal) return;
-
-    const estPrice = Number(newVal.zestimate) || Number(newVal.price) || 0;
-    const estRent = Number(newVal.rentZestimate) || 0;
-    const estTax =
-      Number(newVal.taxAnnualAmount) ||
-      Number(newVal.resoFacts?.taxAnnualAmount) ||
-      0;
-    const estInsurance = Number(newVal.annualHomeownersInsurance) || 1200; // Default if unavailable
-
-    // Pre-fill common fields if they are currently 0
-    if (subtoInputs.monthlyRent === 0) subtoInputs.monthlyRent = estRent;
-    if (sellerFinancingInputs.monthlyRent === 0)
-      sellerFinancingInputs.monthlyRent = estRent;
-    if (cashOfferInputs.monthlyRent === 0)
-      cashOfferInputs.monthlyRent = estRent;
-
-    if (sellerFinancingInputs.propertyTax === 0)
-      sellerFinancingInputs.propertyTax = estTax;
-    if (cashOfferInputs.propertyTax === 0) cashOfferInputs.propertyTax = estTax;
-
-    if (sellerFinancingInputs.insurance === 0)
-      sellerFinancingInputs.insurance = estInsurance;
-    if (cashOfferInputs.insurance === 0)
-      cashOfferInputs.insurance = estInsurance;
-
-    // --- Pre-fill Scenario Specific Prices (Apply defaults ONLY if not manually set and current value is 0) ---
-    if (subtoInputs.purchasePrice === 0) subtoInputs.purchasePrice = estPrice;
-
-    if (
-      !sfPriceManuallySet.value &&
-      sellerFinancingInputs.purchasePrice === 0 &&
-      estPrice > 0
-    ) {
-      sellerFinancingInputs.purchasePrice = Math.round(estPrice * 1.1);
-    }
-    if (!sfDownPaymentManuallySet.value) {
-      // Always reset default % if not manual
-      sellerFinancingInputs.downPaymentPercent = 6;
-    }
-
-    if (
-      !cashPriceManuallySet.value &&
-      cashOfferInputs.offerPrice === 0 &&
-      estPrice > 0
-    ) {
-      cashOfferInputs.offerPrice = Math.round(estPrice * 0.7);
-    }
-
-    // Attempt to auto-fill mortgage data from property info if available
-    if (newVal.mortgage && newVal.mortgage.balance) {
-      console.log("Mortgage data available - can be auto-filled");
-    }
+    
+    // Update the store with property data
+    store.setPropertyData(props.property, props.reapi_property);
   },
   { immediate: true, deep: true }
-); // Use deep watch for nested property changes
+);
 
-// --- Calculations ---
-
-// Subto Calculations
-const subtoCalculated = computed(() => {
-  const pp = Number(subtoInputs.purchasePrice) || 0;
-  const loanBal = Number(subtoInputs.existingLoanBalance) || 0;
-  const cashSeller = Number(subtoInputs.cashToSeller) || 0;
-  const existingPITI = Number(subtoInputs.existingLoanPITI) || 0;
-
-  const defaults = {
-    sellerCarryAmount: 0,
-    sellerCarryMonthlyPayment: 0,
-    monthlyPrincipal: 0,
-    monthlyInterest: 0,
-    totalMonthlyHousingPayment: existingPITI,
-    otherOpExMonthly: 0,
-    monthlyCashFlow: 0,
-    totalCashNeeded: cashSeller,
-    cashOnCash: 0,
-    balloonPayment: 0,
-  };
-
-  if (pp <= 0 || loanBal <= 0) return defaults;
-
-  const sellerCarryAmount = Math.max(0, pp - loanBal - cashSeller);
-
-  // Calculate payments with principal/interest breakdown
-  const mortgageDetails = calculateMortgagePayment(
-    sellerCarryAmount,
-    subtoInputs.sellerCarryRate,
-    subtoInputs.sellerCarryTerm
-  );
-
-  const sellerCarryMonthlyPayment = mortgageDetails.payment;
-  const monthlyPrincipal = mortgageDetails.principal;
-  const monthlyInterest = mortgageDetails.interest;
-
-  const totalMonthlyHousingPayment = existingPITI + sellerCarryMonthlyPayment;
-
-  // Calculate balloon payment if applicable
-  const balloonPayment = calculateBalloonPayment(
-    sellerCarryAmount,
-    subtoInputs.sellerCarryRate,
-    subtoInputs.sellerCarryTerm,
-    subtoInputs.balloonTerm
-  );
-
-  const rent = Number(subtoInputs.monthlyRent) || 0;
-  const vacancyMonthly = rent * (Number(subtoInputs.vacancyRate) / 100);
-  const maintMonthly = rent * (Number(subtoInputs.maintenanceRate) / 100);
-  const mgmtMonthly = rent * (Number(subtoInputs.managementRate) / 100);
-  const otherOpExMonthly = vacancyMonthly + maintMonthly + mgmtMonthly;
-
-  const monthlyCashFlow = rent - totalMonthlyHousingPayment - otherOpExMonthly;
-  const annualCashFlow = monthlyCashFlow * 12;
-
-  let buyerClosingCosts = 0;
-  if (
-    subtoInputs.closingCostsPaidBy === "Buyer" ||
-    subtoInputs.closingCostsPaidBy === "Split"
-  ) {
-    buyerClosingCosts = pp * (Number(subtoInputs.closingCostsPercent) / 100);
-    if (subtoInputs.closingCostsPaidBy === "Split") buyerClosingCosts /= 2;
+// Watchers for manual input tracking
+watch(
+  () => sellerFinancingInputs.value.purchasePrice,
+  () => {
+    sfPriceManuallySet.value = true;
   }
-  let buyerCommissions = 0;
-  if (
-    subtoInputs.commissionPaidBy === "Buyer" ||
-    subtoInputs.commissionPaidBy === "Split"
-  ) {
-    buyerCommissions = pp * (Number(subtoInputs.commissionPercent) / 100);
-    if (subtoInputs.commissionPaidBy === "Split") buyerCommissions /= 2;
+);
+
+watch(
+  () => sellerFinancingInputs.value.downPaymentPercent,
+  () => {
+    sfDownPaymentManuallySet.value = true;
   }
-  const totalCashNeeded = cashSeller + buyerClosingCosts + buyerCommissions;
-  const cashOnCash =
-    totalCashNeeded > 0 ? (annualCashFlow / totalCashNeeded) * 100 : 0;
+);
 
-  return {
-    sellerCarryAmount,
-    sellerCarryMonthlyPayment,
-    monthlyPrincipal,
-    monthlyInterest,
-    totalMonthlyHousingPayment,
-    otherOpExMonthly,
-    monthlyCashFlow,
-    totalCashNeeded,
-    cashOnCash: isNaN(cashOnCash) ? 0 : cashOnCash,
-    balloonPayment,
-  };
-});
-
-// Seller Financing Calculations
-const sellerFinancingCalculated = computed(() => {
-  const pp = Number(sellerFinancingInputs.purchasePrice) || 0;
-  const dpPercent = Number(sellerFinancingInputs.downPaymentPercent) || 0;
-
-  const defaults = {
-    downPaymentAmount: 0,
-    sellerNoteAmount: 0,
-    monthlyPaymentPI: 0,
-    monthlyPrincipal: 0,
-    monthlyInterest: 0,
-    monthlyTaxInsurance: 0,
-    totalMonthlyPITI: 0,
-    otherOpExMonthly: 0,
-    monthlyCashFlow: 0,
-    totalCashNeeded: 0,
-    cashOnCash: 0,
-    balloonPayment: 0,
-  };
-
-  if (pp <= 0) return defaults;
-
-  const downPaymentAmount = pp * (dpPercent / 100);
-  const sellerNoteAmount = pp - downPaymentAmount;
-
-  // Calculate payments with principal/interest breakdown
-  const mortgageDetails = calculateMortgagePayment(
-    sellerNoteAmount,
-    sellerFinancingInputs.sellerRate,
-    sellerFinancingInputs.sellerTerm
-  );
-
-  const monthlyPaymentPI = mortgageDetails.payment;
-  const monthlyPrincipal = mortgageDetails.principal;
-  const monthlyInterest = mortgageDetails.interest;
-
-  // Calculate balloon payment if applicable
-  const balloonPayment = calculateBalloonPayment(
-    sellerNoteAmount,
-    sellerFinancingInputs.sellerRate,
-    sellerFinancingInputs.sellerTerm,
-    sellerFinancingInputs.balloonTerm
-  );
-
-  const taxMonthly = (Number(sellerFinancingInputs.propertyTax) || 0) / 12;
-  const insMonthly = (Number(sellerFinancingInputs.insurance) || 0) / 12;
-  const monthlyTaxInsurance = taxMonthly + insMonthly;
-  const totalMonthlyPITI = monthlyPaymentPI + monthlyTaxInsurance;
-
-  const rent = Number(sellerFinancingInputs.monthlyRent) || 0;
-  const vacancyMonthly =
-    rent * (Number(sellerFinancingInputs.vacancyRate) / 100);
-  const maintMonthly =
-    rent * (Number(sellerFinancingInputs.maintenanceRate) / 100);
-  const mgmtMonthly =
-    rent * (Number(sellerFinancingInputs.managementRate) / 100);
-  const otherOpExMonthly = vacancyMonthly + maintMonthly + mgmtMonthly;
-
-  const monthlyCashFlow = rent - totalMonthlyPITI - otherOpExMonthly;
-  const annualCashFlow = monthlyCashFlow * 12;
-
-  let buyerClosingCosts = 0;
-  if (
-    sellerFinancingInputs.closingCostsPaidBy === "Buyer" ||
-    sellerFinancingInputs.closingCostsPaidBy === "Split"
-  ) {
-    buyerClosingCosts =
-      pp * (Number(sellerFinancingInputs.closingCostsPercent) / 100);
-    if (sellerFinancingInputs.closingCostsPaidBy === "Split")
-      buyerClosingCosts /= 2;
+watch(
+  () => cashOfferInputs.value.offerPrice,
+  () => {
+    cashPriceManuallySet.value = true;
   }
-  let buyerCommissions = 0;
-  if (
-    sellerFinancingInputs.commissionPaidBy === "Buyer" ||
-    sellerFinancingInputs.commissionPaidBy === "Split"
-  ) {
-    buyerCommissions =
-      pp * (Number(sellerFinancingInputs.commissionPercent) / 100);
-    if (sellerFinancingInputs.commissionPaidBy === "Split")
-      buyerCommissions /= 2;
-  }
-  const totalCashNeeded =
-    downPaymentAmount + buyerClosingCosts + buyerCommissions;
-  const cashOnCash =
-    totalCashNeeded > 0 ? (annualCashFlow / totalCashNeeded) * 100 : 0;
+);
 
-  return {
-    downPaymentAmount,
-    sellerNoteAmount,
-    monthlyPaymentPI,
-    monthlyPrincipal,
-    monthlyInterest,
-    monthlyTaxInsurance,
-    totalMonthlyPITI,
-    otherOpExMonthly,
-    monthlyCashFlow,
-    totalCashNeeded,
-    cashOnCash: isNaN(cashOnCash) ? 0 : cashOnCash,
-    balloonPayment,
-  };
-});
-
-// Cash Offer Calculations
-const cashOfferCalculated = computed(() => {
-  const offerPrice = Number(cashOfferInputs.offerPrice) || 0;
-  const customAmount1 = Number(cashOfferInputs.customAmount1) || 0;
-  const customAmount2 = Number(cashOfferInputs.customAmount2) || 0;
-
-  const defaults = {
-    closingCostsAmount: 0,
-    additionalCosts: 0,
-    totalCashNeeded: 0,
-    annualNOI: 0,
-    monthlyCashFlow: 0,
-    capRate: 0,
-    cashOnCash: 0,
-  };
-
-  if (offerPrice <= 0) return defaults;
-
-  let buyerClosingCosts = 0;
-  if (
-    cashOfferInputs.closingCostsPaidBy === "Buyer" ||
-    cashOfferInputs.closingCostsPaidBy === "Split"
-  ) {
-    buyerClosingCosts =
-      offerPrice * (Number(cashOfferInputs.closingCostsPercent) / 100);
-    if (cashOfferInputs.closingCostsPaidBy === "Split") buyerClosingCosts /= 2;
-  }
-  const closingCostsAmount = buyerClosingCosts;
-  const additionalCosts = customAmount1 + customAmount2;
-  const totalCashNeeded = offerPrice + closingCostsAmount + additionalCosts;
-
-  const rent = Number(cashOfferInputs.monthlyRent) || 0;
-  const annualGrossRent = rent * 12;
-
-  const taxAnnual = Number(cashOfferInputs.propertyTax) || 0;
-  const insAnnual = Number(cashOfferInputs.insurance) || 0;
-  const vacancyAnnual =
-    annualGrossRent * (Number(cashOfferInputs.vacancyRate) / 100);
-  const maintAnnual =
-    annualGrossRent * (Number(cashOfferInputs.maintenanceRate) / 100);
-  const mgmtAnnual =
-    annualGrossRent * (Number(cashOfferInputs.managementRate) / 100);
-  const totalAnnualOpEx =
-    taxAnnual + insAnnual + vacancyAnnual + maintAnnual + mgmtAnnual;
-
-  const annualNOI = annualGrossRent - totalAnnualOpEx;
-  const monthlyCashFlow = annualNOI / 12;
-  const annualCashFlow = annualNOI;
-
-  const capRate = offerPrice > 0 ? (annualNOI / offerPrice) * 100 : 0;
-  const cashOnCash =
-    totalCashNeeded > 0 ? (annualCashFlow / totalCashNeeded) * 100 : 0;
-
-  return {
-    closingCostsAmount,
-    additionalCosts,
-    totalCashNeeded,
-    annualNOI,
-    monthlyCashFlow,
-    capRate: isNaN(capRate) ? 0 : capRate,
-    cashOnCash: isNaN(cashOnCash) ? 0 : cashOnCash,
-  };
-});
-
-// Generate amortization schedule
-const generateAmortizationSchedule = (loanAmount, interestRate, termYears) => {
-  if (!loanAmount || loanAmount <= 0 || !termYears || termYears <= 0) return [];
-
-  const rate = interestRate == null ? 0 : interestRate;
-  const monthlyRate = rate / 100 / 12;
-  const numberOfPayments = termYears * 12;
-
-  // Calculate payment
-  let monthlyPayment;
-  if (monthlyRate === 0) {
-    monthlyPayment = loanAmount / numberOfPayments;
-  } else {
-    const factor = Math.pow(1 + monthlyRate, numberOfPayments);
-    monthlyPayment = (loanAmount * (monthlyRate * factor)) / (factor - 1);
-  }
-
-  // Generate schedule
-  const schedule = [];
-  let remainingBalance = loanAmount;
-  let totalInterest = 0;
-  let totalPrincipal = 0;
-
-  for (let month = 1; month <= numberOfPayments; month++) {
-    // Calculate interest for this period
-    const interest = monthlyRate === 0 ? 0 : remainingBalance * monthlyRate;
-    const principal = monthlyPayment - interest;
-
-    // Update balances
-    remainingBalance -= principal;
-    totalInterest += interest;
-    totalPrincipal += principal;
-
-    // Add to schedule (only include certain intervals to keep it manageable)
-    const year = Math.ceil(month / 12);
-    const monthOfYear = ((month - 1) % 12) + 1;
-
-    // Include first payment of each year, last payment, and any balloon payment
-    if (monthOfYear === 1 || month === numberOfPayments) {
-      schedule.push({
-        payment: month,
-        year,
-        month: monthOfYear,
-        principal: principal.toFixed(2),
-        interest: interest.toFixed(2),
-        totalPayment: monthlyPayment.toFixed(2),
-        remainingBalance: Math.max(0, remainingBalance).toFixed(2),
-        totalInterestPaid: totalInterest.toFixed(2),
-      });
-    }
-  }
-
-  return schedule;
-};
-
-// Expose a few computed properties for specific amortization schedules
-const sellerFinancingAmortizationSchedule = computed(() => {
-  return generateAmortizationSchedule(
-    sellerFinancingCalculated.value.sellerNoteAmount,
-    sellerFinancingInputs.sellerRate,
-    sellerFinancingInputs.sellerTerm
-  );
-});
-
-const subtoAmortizationSchedule = computed(() => {
-  return generateAmortizationSchedule(
-    subtoCalculated.value.sellerCarryAmount,
-    subtoInputs.sellerCarryRate,
-    subtoInputs.sellerCarryTerm
-  );
+// Initialize store with property data when component is mounted
+onMounted(() => {
+  // For existing user sessions, this ensures component values are synced with store
+  store.setPropertyData(props.property, props.reapi_property);
 });
 </script>
 <style>

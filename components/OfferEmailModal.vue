@@ -352,22 +352,22 @@
     const ownerName = props.sellerName;
     
     return `If you are using NapkinSigned APP please copy this text:
-  •    Property Address: ${address}
-  •    APN: ${props.apn}
-  •    Legal Description: ${props.legalDescription}
-  •    County: ${props.county}
-  •    Sellers Name: ${ownerName}
-  •    Open Loan Balance: ${calculatedOpenLoanBalance.value}
-  •    Cash to Seller at Closing: ${calculatedCashToSeller.value}
-  •    Seller Carryback Amount: ${calculatedSellerCarrybackAmount.value}
-  •    Seller Carryback Interest Rate: ${calculatedSellerCarrybackInterestRate.value}
-  •    Seller Carryback Monthly Payments: ${calculatedSellerCarrybackMonthlyPayments.value}
-  •    Listing Agent's Name: ${agentName}
-  •    Listing Agent's Phone: ${props.agentPhone}
-  •    Listing Agent's Email: ${agentName !== "N/A" ? "[Agent Email]" : "N/A"}
-  •    Agent Commission: ${calculatedAgentCommission.value}
-  •    Purchase Price / Listing Price: ${calculatedPurchasePrice.value}`;
-  };
+    Property Address: ${address}
+    APN: ${props.apn}
+    Legal Description: ${props.legalDescription}
+    County: ${props.county}
+    Sellers Name: ${ownerName}
+    Open Loan Balance: ${calculatedOpenLoanBalance.value}
+    Cash to Seller at Closing: ${calculatedCashToSeller.value}
+    Seller Carryback Amount: ${calculatedSellerCarrybackAmount.value}
+    Seller Carryback Interest Rate: ${calculatedSellerCarrybackInterestRate.value}
+    Seller Carryback Monthly Payments: ${calculatedSellerCarrybackMonthlyPayments.value}
+    Listing Agent's Name: ${agentName}
+    Listing Agent's Phone: ${props.agentPhone}
+    Listing Agent's Email: ${agentName !== "N/A" ? "[Agent Email]" : "N/A"}
+    Agent Commission: ${calculatedAgentCommission.value}
+    Purchase Price / Listing Price: ${calculatedPurchasePrice.value}`;
+};
   
   // Generate email text template with calculated values
   const generateEmailTemplate = () => {

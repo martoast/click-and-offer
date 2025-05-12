@@ -1,16 +1,13 @@
 // server/api/ai-chat.post.js
 import { OpenAI } from "openai";
-
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig();
     const openai = new OpenAI({
       apiKey: config.openaiApiKey || process.env.OPENAI_API_KEY,
     });
-
     const body = await readBody(event);
     const { messages, property, threadId } = body;
-
     // Get the last user message
     const lastUserMessage = messages.findLast(m => m.role === 'user');
     
@@ -20,7 +17,6 @@ export default defineEventHandler(async (event) => {
         message: "No user message found."
       };
     }
-
     // Create or retrieve thread
     let thread;
     if (threadId) {
@@ -37,24 +33,22 @@ export default defineEventHandler(async (event) => {
         ],
       });
     }
-
     // Add the user's message to the thread
     await openai.beta.threads.messages.create(thread.id, {
       role: "user",
       content: lastUserMessage.content,
     });
-
     // Run the assistant on the thread
     const run = await openai.beta.threads.runs.create(thread.id, {
       assistant_id: "asst_CaIzxIdsJrvtLjicLpKhZny0",
     });
-
     // Poll for the run to complete
     let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
     
-    // Wait for the run to complete (with a timeout)
+    // Wait for the run to complete (with a longer timeout)
     const startTime = Date.now();
-    const timeoutMs = 30000; // 30 seconds timeout
+    const timeoutMs = 120000; // 2 minutes timeout
+    let checkCount = 0;
     
     while (runStatus.status !== "completed" && runStatus.status !== "failed" && 
            runStatus.status !== "cancelled" && runStatus.status !== "expired") {
@@ -63,13 +57,16 @@ export default defineEventHandler(async (event) => {
       if (Date.now() - startTime > timeoutMs) {
         return {
           status: "error",
-          message: "Request timed out. Please try again.",
+          message: "Request timed out. The property AI is taking longer than expected. Please try again with a simpler question.",
           threadId: thread.id
         };
       }
       
-      // Wait a bit before checking again
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Adaptive polling: wait longer between checks as time passes
+      const waitTime = Math.min(1000 * (1 + Math.floor(checkCount / 3)), 5000);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      checkCount++;
+      
       runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
     }
     
@@ -80,15 +77,12 @@ export default defineEventHandler(async (event) => {
         threadId: thread.id
       };
     }
-
     // Get the latest messages from the thread
     const messagesResponse = await openai.beta.threads.messages.list(thread.id, {
       limit: 1,
       order: "desc",
     });
-
     const latestMessage = messagesResponse.data[0];
-
     return {
       message: {
         role: "assistant",

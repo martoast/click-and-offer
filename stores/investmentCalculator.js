@@ -376,15 +376,26 @@ export const useInvestmentCalculatorStore = defineStore('investmentCalculator', 
     },
     
     prefillDataFromProperty() {
-      if (!this.propertyData) return;
+      if (!this.propertyData && !this.reapiPropertyData) return;
       
-      const estPrice = Number(this.propertyData.zestimate) || Number(this.propertyData.price) || 0;
-      const estRent = Number(this.propertyData.rentZestimate) || 0;
-      const estTax =
-        Number(this.propertyData.taxAnnualAmount) ||
-        Number(this.propertyData?.resoFacts?.taxAnnualAmount) ||
-        0;
-      const estInsurance = Number(this.propertyData.annualHomeownersInsurance) || 1200; // Default if unavailable
+      // Get estimated value first from REAPI, then Zillow
+      const estPrice = Number(this.reapiPropertyData?.estimatedValue) || 
+                       Number(this.propertyData?.zestimate) || 
+                       Number(this.propertyData?.price) || 
+                       0;
+                       
+      // Get rent estimate from Zillow or REAPI demographics
+      const estRent = Number(this.propertyData?.rentZestimate) || 
+                      Number(this.reapiPropertyData?.demographics?.suggestedRent) || 
+                      0;
+                      
+      // Get tax info from property data or REAPI
+      const estTax = Number(this.propertyData?.taxAnnualAmount) ||
+                     Number(this.propertyData?.resoFacts?.taxAnnualAmount) ||
+                     Number(this.reapiPropertyData?.taxInfo?.taxAmount) ||
+                     0;
+                     
+      const estInsurance = Number(this.propertyData?.annualHomeownersInsurance) || 1200; // Default if unavailable
 
       // Pre-fill common fields if they are currently 0
       if (this.subtoInputs.monthlyRent === 0) this.subtoInputs.monthlyRent = estRent;

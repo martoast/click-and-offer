@@ -730,6 +730,7 @@
       :estimatedValue="computedEstimatedValue"
       :legalDescription="computedLegalDescription"
       :agentPhone="computedListingAgentPhone"
+      :commissionPercent="3"
     />
   </div>
 </template>

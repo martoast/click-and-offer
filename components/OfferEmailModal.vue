@@ -172,6 +172,10 @@ const props = defineProps({
     type: String,
     default: "N/A"
   },
+  agentEmail: {
+    type: String,
+    default: "N/A"
+  },
   commissionPercent: {
     type: Number,
     default: 3

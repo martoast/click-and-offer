@@ -720,7 +720,7 @@
                 />
               </div>
               <p
-                v-if="!sfPriceManuallySet && props.property?.zestimate"
+                v-if="!props.reapi_property.mls_active"
                 class="input-help"
               >
                 Default: Estimated Value ({{ formatPrice(props.reapi_property.estimatedValue) }})

@@ -314,7 +314,7 @@ Seller Carryback Interest Rate: ${calculatedSellerCarrybackInterestRate.value}
 Seller Carryback Monthly Payments: ${calculatedSellerCarrybackMonthlyPayments.value}
 Listing Agent's Name: ${agentName}
 Listing Agent's Phone: ${props.agentPhone}
-Listing Agent's Email: ${agentName !== "N/A" ? "[Agent Email]" : "N/A"}
+Listing Agent's Email: ${props.agentEmail !== "N/A" ? props.agentEmail : "N/A"}
 Agent Commission: ${props.commissionPercent}%
 Agent Commission Amount: ${calculatedAgentCommission.value}
 Purchase Price / Listing Price: ${props.formattedPurchaseOrListingPrice}`;
@@ -341,7 +341,7 @@ Hope you're doing great. Please see the attached offer for ${address}:
 •    Seller Carryback Monthly Payments: ${calculatedSellerCarrybackMonthlyPayments.value}
 •    Agent Commission: ${props.commissionPercent}%
 •    Agent Commission Amount: ${calculatedAgentCommission.value}
-•    Listing Agent's Email: ${agentName !== "N/A" ? "[Agent Email]" : "N/A"}
+•    Listing Agent's Email: ${props.agentEmail !== "N/A" ? props.agentEmail : "N/A"}
 
 If you're interested, please forward the mortgage statement if applicable or any counter terms to help us move faster.
 

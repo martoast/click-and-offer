@@ -910,13 +910,11 @@ const computedPropertyAddress = computed(() => {
 });
 
 const computedOpenLoanBalance = computed(() => {
-  const balance =
-    props.reapi_property?.openMortgageBalance ??
-    props.reapi_property?.estimatedMortgageBalance;
-  return balance !== undefined &&
-    balance !== null &&
-    String(balance).trim() !== ""
-    ? Number(balance)
+  const balance = props.reapi_property.estimatedMortgageBalance;
+  return balance !== undefined && 
+    balance !== null && 
+    String(balance).trim() !== "" 
+    ? Number(balance) 
     : null;
 });
 

@@ -229,6 +229,24 @@
                 </svg>
                 Financing Options
               </h4>
+
+              <!-- NEW: Include Seller Carryback Toggle -->
+              <div class="input-group">
+                <div class="flex items-center justify-between">
+                  <label class="input-label">Include Seller Carryback</label>
+                  <div class="relative">
+                    <label class="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        v-model="subtoInputs.includeSellerCarryback"
+                        class="sr-only peer"
+                      />
+                      <div class="w-11 h-6 bg-gray-800 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-yellow-gold/40 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-gold/50"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div
                 class="bg-gray-900/70 rounded-lg p-4 border border-yellow-gold/30 shadow-sm"
               >
@@ -242,7 +260,8 @@
                 </div>
               </div>
 
-              <template v-if="subtoCalculated.sellerCarryAmount > 0">
+              <!-- MODIFIED: Conditional Seller Carryback Options -->
+              <template v-if="subtoInputs.includeSellerCarryback && subtoCalculated.sellerCarryAmount > 0">
                 <div class="input-group">
                   <label class="input-label"
                     >Seller Carry Interest Rate (%)</label
@@ -293,23 +312,14 @@
                 </div>
               </template>
               <template v-else>
-                <div
-                  class="bg-gray-900/30 rounded-lg p-4 border border-yellow-gold/20 flex items-center text-gray-400 italic text-sm"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 mr-2 text-gray-500 flex-shrink-0"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  No Seller Carryback needed.
-                </div>
+                 <div class="bg-gray-900/30 rounded-lg p-4 border border-yellow-gold/20 flex items-center text-gray-400 italic text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path v-if="subtoInputs.includeSellerCarryback" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        <path v-else fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <span v-if="!subtoInputs.includeSellerCarryback">Seller Carryback is disabled.</span>
+                    <span v-else>No Seller Carryback needed.</span>
+                  </div>
               </template>
 
               <div class="input-group">
@@ -443,7 +453,6 @@
           </div>
 
           <!-- Subto Results -->
-          <!-- Subto Results - New Design -->
           <div
             v-if="subtoInputs.existingLoanPITI > 0"
             class="pt-6 mt-6 border-t border-yellow-gold/20"
@@ -469,7 +478,6 @@
               >
             </div>
 
-            <!-- New table-like design for results -->
             <div
               class="bg-gray-900/50 rounded-lg border border-yellow-gold/20 overflow-hidden"
             >
@@ -518,7 +526,7 @@
                   <div
                     class="text-xs text-gray-400 uppercase tracking-wider font-medium"
                   >
-                    Principal
+                    Principal <span v-if="subtoCalculated.sellerCarryAmount > 0 && subtoInputs.includeSellerCarryback" class="text-gray-500">(Carry)</span>
                   </div>
                   <div class="text-lg font-bold text-white mt-1">
                     {{ formatPrice(subtoCalculated.monthlyPrincipal) }}/mo
@@ -529,7 +537,7 @@
                   <div
                     class="text-xs text-gray-400 uppercase tracking-wider font-medium"
                   >
-                    Interest
+                    Interest <span v-if="subtoCalculated.sellerCarryAmount > 0 && subtoInputs.includeSellerCarryback" class="text-gray-500">(Carry)</span>
                   </div>
                   <div class="text-lg font-bold text-white mt-1">
                     {{ formatPrice(subtoCalculated.monthlyInterest) }}/mo
@@ -592,6 +600,8 @@
 
                 <div
                   v-if="
+                    subtoInputs.includeSellerCarryback &&
+                    subtoCalculated.sellerCarryAmount > 0 &&
                     subtoInputs.balloonTerm &&
                     subtoInputs.balloonTerm < subtoInputs.sellerCarryTerm
                   "
@@ -658,6 +668,7 @@
       <!-- ## Seller Finance Scenario ## -->
       <!-- ############################# -->
       <div v-if="selectedScenario === 'SellerFinancing'" class="space-y-6">
+        <!-- ... (Seller Financing content remains the same) ... -->
         <div class="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 class="text-lg font-semibold text-yellow-gold">
@@ -982,7 +993,6 @@
         </div>
 
         <!-- SF Results -->
-        <!-- SF Results - New Design -->
         <div class="pt-6 mt-6 border-t border-yellow-gold/20">
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h4 class="section-header text-green-400">
@@ -1005,7 +1015,6 @@
             >
           </div>
 
-          <!-- New table-like design for results -->
           <div
             class="bg-gray-900/50 rounded-lg border border-yellow-gold/20 overflow-hidden"
           >
@@ -1147,7 +1156,8 @@
       <!-- ## Cash Offer Scenario ## -->
       <!-- ####################### -->
       <div v-if="selectedScenario === 'Cash'" class="space-y-6">
-        <div class="flex items-center justify-between flex-wrap gap-2">
+        <!-- ... (Cash Offer content remains the same) ... -->
+         <div class="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 class="text-lg font-semibold text-yellow-gold">
               Cash Offer Analysis
@@ -1446,7 +1456,6 @@
         </div>
 
         <!-- Cash Results -->
-        <!-- Cash Results - New Design -->
         <div class="pt-6 mt-6 border-t border-yellow-gold/20">
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h4 class="section-header text-green-400">
@@ -1469,7 +1478,6 @@
             >
           </div>
 
-          <!-- New table-like design for results -->
           <div
             class="bg-gray-900/50 rounded-lg border border-yellow-gold/20 overflow-hidden"
           >
@@ -1569,6 +1577,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
 import { useInvestmentCalculatorStore } from "~/stores/investmentCalculator";
@@ -1594,7 +1603,6 @@ const scenarios = [
   { id: "Cash", name: "Cash Offer" },
 ];
 
-// Sync component data with the store
 const selectedScenario = computed({
   get: () => store.selectedScenario,
   set: (value) => store.setSelectedScenario(value)
@@ -1615,30 +1623,22 @@ const formatNumber = (num) => {
   return new Intl.NumberFormat("en-US").format(Number(num));
 };
 
-// Toggle amortization schedule visibility
 const showAmortizationSchedule = computed({
   get: () => store.showAmortizationSchedule,
-  set: () => store.toggleAmortizationSchedule()
+  set: () => store.toggleAmortizationSchedule() // Make sure this exists if used
 });
-
-const toggleAmortizationSchedule = () => {
-  store.toggleAmortizationSchedule();
-};
 
 // --- Create computed properties for two-way binding with inputs ---
-// Subject-To inputs
 const subtoInputs = computed({
   get: () => store.subtoInputs,
-  set: (newValues) => store.updateSubtoInputs(newValues)
+  set: (newValues) => store.updateSubtoInputs(newValues) // Ensure this action exists
 });
 
-// Seller Financing inputs
 const sellerFinancingInputs = computed({
   get: () => store.sellerFinancingInputs,
   set: (newValues) => store.updateSellerFinancingInputs(newValues)
 });
 
-// Cash Offer inputs
 const cashOfferInputs = computed({
   get: () => store.cashOfferInputs,
   set: (newValues) => store.updateCashOfferInputs(newValues)
@@ -1660,7 +1660,6 @@ const cashPriceManuallySet = computed({
   set: (value) => store.setCashPriceManuallySet(value)
 });
 
-// Function to auto-fill mortgage data if available
 const autoFillMortgageData = () => {
   store.autoFillMortgageData();
 };
@@ -1669,22 +1668,19 @@ const autoFillMortgageData = () => {
 const subtoCalculated = computed(() => store.subtoCalculated);
 const sellerFinancingCalculated = computed(() => store.sellerFinancingCalculated);
 const cashOfferCalculated = computed(() => store.cashOfferCalculated);
-const sellerFinancingAmortizationSchedule = computed(() => store.sellerFinancingAmortizationSchedule);
-const subtoAmortizationSchedule = computed(() => store.subtoAmortizationSchedule);
+// Amortization schedules if needed by other parts of your template (not shown in snippet)
+// const sellerFinancingAmortizationSchedule = computed(() => store.sellerFinancingAmortizationSchedule);
+// const subtoAmortizationSchedule = computed(() => store.subtoAmortizationSchedule);
 
-// Watch for property changes and update the store
 watch(
   () => props.property,
   (newVal) => {
     if (!newVal) return;
-    
-    // Update the store with property data
     store.setPropertyData(props.property, props.reapi_property);
   },
   { immediate: true, deep: true }
 );
 
-// Watchers for manual input tracking
 watch(
   () => sellerFinancingInputs.value.purchasePrice,
   () => {
@@ -1706,12 +1702,11 @@ watch(
   }
 );
 
-// Initialize store with property data when component is mounted
 onMounted(() => {
-  // For existing user sessions, this ensures component values are synced with store
   store.setPropertyData(props.property, props.reapi_property);
 });
 </script>
+
 <style>
 /* Hide scrollbar for Chrome, Safari and Opera */
 .hide-scrollbar::-webkit-scrollbar {

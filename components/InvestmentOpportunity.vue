@@ -723,7 +723,7 @@
                 v-if="!sfPriceManuallySet && props.property?.zestimate"
                 class="input-help"
               >
-                Default: Zestimate ({{ formatPrice(props.property.zestimate) }})
+                Default: Estimated Value ({{ formatPrice(props.reapi_property.estimatedValue) }})
                 + 10%
               </p>
             </div>

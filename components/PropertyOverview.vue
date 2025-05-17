@@ -448,29 +448,44 @@
             >
               <div class="mb-4 md:mb-0">
                 <div class="mb-1">
-                  <span class="text-gray-400 text-sm">Estimated Value</span>
+                  <span class="text-gray-400 text-sm">
+                    {{
+                      props.reapi_property.mls_active
+                        ? "List Price"
+                        : "Estimated Value"
+                    }}
+                  </span>
                 </div>
                 <div class="text-yellow-gold text-2xl md:text-3xl font-bold">
                   {{
                     formatPrice(
-                      reapi_property.estimatedValue || property.zestimate
+                      props.reapi_property.mls_active
+                        ? props.property.price
+                        : props.reapi_property.estimatedValue ||
+                            props.property.zestimate
                     )
                   }}
                 </div>
                 <div
                   v-if="
-                    (reapi_property.estimatedValue || property.zestimate) &&
-                    (reapi_property.propertyInfo?.livingSquareFeet ||
-                      property.livingArea)
+                    (props.reapi_property.mls_active
+                      ? props.property.price
+                      : props.reapi_property.estimatedValue ||
+                        props.property.zestimate) &&
+                    (props.reapi_property.propertyInfo?.livingSquareFeet ||
+                      props.property.livingArea)
                   "
                   class="text-sm text-gray-400 mt-1"
                 >
                   {{
                     formatPrice(
                       Math.round(
-                        (reapi_property.estimatedValue || property.zestimate) /
-                          (reapi_property.propertyInfo?.livingSquareFeet ||
-                            property.livingArea)
+                        (props.reapi_property.mls_active
+                          ? props.property.price
+                          : props.reapi_property.estimatedValue ||
+                            props.property.zestimate) /
+                          (props.reapi_property.propertyInfo
+                            ?.livingSquareFeet || props.property.livingArea)
                       )
                     )
                   }}/sqft
@@ -911,10 +926,10 @@ const computedPropertyAddress = computed(() => {
 
 const computedOpenLoanBalance = computed(() => {
   const balance = props.reapi_property.estimatedMortgageBalance;
-  return balance !== undefined && 
-    balance !== null && 
-    String(balance).trim() !== "" 
-    ? Number(balance) 
+  return balance !== undefined &&
+    balance !== null &&
+    String(balance).trim() !== ""
+    ? Number(balance)
     : null;
 });
 
@@ -959,40 +974,39 @@ const computedAgentInfo = computed(() => {
 
 const computedListingAgentName = computed(() => {
   const { mlsHistory } = props.reapi_property;
-  return (mlsHistory && mlsHistory.length > 0 && mlsHistory[0].agentName)
-    ? mlsHistory[0].agentName 
-    : (computedAgentInfo.value?.display_name || NA_FALLBACK);
+  return mlsHistory && mlsHistory.length > 0 && mlsHistory[0].agentName
+    ? mlsHistory[0].agentName
+    : computedAgentInfo.value?.display_name || NA_FALLBACK;
 });
 
 const computedListingAgentBusinessName = computed(() => {
   const { mlsHistory } = props.reapi_property;
-  return (mlsHistory && mlsHistory.length > 0 && mlsHistory[0].agentOffice)
+  return mlsHistory && mlsHistory.length > 0 && mlsHistory[0].agentOffice
     ? mlsHistory[0].agentOffice
-    : (computedAgentInfo.value?.business_name || NA_FALLBACK);
+    : computedAgentInfo.value?.business_name || NA_FALLBACK;
 });
 
 const computedListingAgentPhone = computed(() => {
   const { mlsHistory } = props.reapi_property;
-  
+
   if (mlsHistory && mlsHistory.length > 0 && mlsHistory[0].agentPhone) {
     return mlsHistory[0].agentPhone;
   }
-  
+
   if (computedAgentInfo.value?.phone) {
     const phone = computedAgentInfo.value.phone;
     return `(${phone.areacode}) ${phone.prefix}-${phone.number}`;
   }
-  
+
   return NA_FALLBACK;
 });
 
 const computedListingAgentEmail = computed(() => {
   const { mlsHistory } = props.reapi_property;
-  return (mlsHistory && mlsHistory.length > 0 && mlsHistory[0].agentEmail)
+  return mlsHistory && mlsHistory.length > 0 && mlsHistory[0].agentEmail
     ? mlsHistory[0].agentEmail
-    : (computedAgentInfo.value?.email || NA_FALLBACK);
+    : computedAgentInfo.value?.email || NA_FALLBACK;
 });
-
 
 const computedListingAgentImage = computed(() => {
   return computedAgentInfo.value?.image_url || null;

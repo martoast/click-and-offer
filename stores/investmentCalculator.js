@@ -379,11 +379,16 @@ export const useInvestmentCalculatorStore = defineStore('investmentCalculator', 
     prefillDataFromProperty() {
       if (!this.propertyData && !this.reapiPropertyData) return;
       
-      // Get estimated value first from REAPI, then Zillow
-      const estPrice = Number(this.reapiPropertyData?.estimatedValue) || 
-                       Number(this.propertyData?.zestimate) || 
-                       Number(this.propertyData?.price) || 
-                       0;
+      // Check if property is actively for sale
+      const isForSale = this.reapiPropertyData?.mls_active === true;
+      
+      // Use list price when for sale, otherwise use estimated values
+      const estPrice = isForSale
+        ? Number(this.propertyData?.price) || 0
+        : Number(this.reapiPropertyData?.estimatedValue) || 
+          Number(this.propertyData?.zestimate) || 
+          Number(this.propertyData?.price) || 
+          0;
                        
       // Get rent estimate from Zillow or REAPI demographics
       const estRent = Number(this.propertyData?.rentZestimate) || 

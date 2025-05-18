@@ -642,16 +642,6 @@
               <div
                 class="flex items-center border-b border-yellow-gold/20 py-3 sm:col-span-2"
               >
-                <div
-                  class="flex-shrink-0 mr-3"
-                  v-if="computedListingAgentImage"
-                >
-                  <img
-                    :src="computedListingAgentImage"
-                    alt="Agent photo"
-                    class="w-14 h-14 rounded-full object-cover border border-yellow-gold/30"
-                  />
-                </div>
                 <div class="flex-grow">
                   <span class="text-gray-400">Agent:</span>
                   <div class="font-bold text-white">
@@ -686,6 +676,15 @@
                 Agent information not available.
               </div>
             </template>
+          </div>
+
+          <!-- Important Notice -->
+          <div class="mt-4 pt-4 border-t border-yellow-gold/20">
+            <p class="text-red-500 text-xs">
+              <strong>Important Notice:</strong><br />
+              Please verify agent info on Zillow. Data shown may not always be
+              fully accurate.
+            </p>
           </div>
         </div>
 

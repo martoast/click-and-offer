@@ -1,13 +1,16 @@
-// server/api/ai-chat.post.js
+// server/api/ai-chat.post.js - SIMPLIFIED VERSION WITHOUT SSE
 import { OpenAI } from "openai";
+
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig();
     const openai = new OpenAI({
       apiKey: config.openaiApiKey || process.env.OPENAI_API_KEY,
     });
+    
     const body = await readBody(event);
     const { messages, property, threadId } = body;
+    
     // Get the last user message
     const lastUserMessage = messages.findLast(m => m.role === 'user');
     
@@ -17,80 +20,97 @@ export default defineEventHandler(async (event) => {
         message: "No user message found."
       };
     }
-    // Create or retrieve thread
+    
+    // Thread management
     let thread;
-    if (threadId) {
-      thread = { id: threadId };
-    } else {
-      // Create a new thread with enhanced property information as the first message
-      const propertyContext = createEnhancedPropertyContext(property);
-      thread = await openai.beta.threads.create({
-        messages: [
-          {
-            role: "user",
-            content: `Here is the property information I'm looking at: ${propertyContext}`,
-          },
-        ],
-      });
-    }
-    // Add the user's message to the thread
-    await openai.beta.threads.messages.create(thread.id, {
-      role: "user",
-      content: lastUserMessage.content,
-    });
-    // Run the assistant on the thread
-    const run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: "asst_CaIzxIdsJrvtLjicLpKhZny0",
-    });
-    // Poll for the run to complete
-    let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-    
-    // Wait for the run to complete (with a longer timeout)
-    const startTime = Date.now();
-    const timeoutMs = 120000; // 2 minutes timeout
-    let checkCount = 0;
-    
-    while (runStatus.status !== "completed" && runStatus.status !== "failed" && 
-           runStatus.status !== "cancelled" && runStatus.status !== "expired") {
+    try {
+      if (threadId) {
+        thread = { id: threadId };
+      } else {
+        // Create a new thread with enhanced property information
+        const propertyContext = createEnhancedPropertyContext(property);
+        
+        thread = await openai.beta.threads.create({
+          messages: [
+            {
+              role: "user",
+              content: `Here is the property information I'm looking at: ${propertyContext}`,
+            },
+          ],
+        });
+      }
       
-      // Check for timeout
-      if (Date.now() - startTime > timeoutMs) {
+      // Add the user's message to the thread
+      await openai.beta.threads.messages.create(thread.id, {
+        role: "user",
+        content: lastUserMessage.content,
+      });
+      
+      // Run the assistant on the thread
+      const run = await openai.beta.threads.runs.create(thread.id, {
+        assistant_id: "asst_CaIzxIdsJrvtLjicLpKhZny0",
+      });
+      
+      // Poll for the run to complete
+      let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      
+      // Improved polling with exponential backoff
+      let attempts = 0;
+      const maxAttempts = 30;
+      
+      while (!["completed", "failed", "cancelled", "expired"].includes(runStatus.status) && attempts < maxAttempts) {
+        // Exponential backoff with jitter
+        const baseDelay = Math.min(1000 * Math.pow(1.5, attempts), 8000);
+        const jitter = Math.random() * 1000;
+        const delay = baseDelay + jitter;
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        attempts++;
+        
+        try {
+          runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+        } catch (pollError) {
+          console.error("Error polling for run status:", pollError);
+          // If we hit an error, wait a bit longer before retrying
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+      
+      if (runStatus.status !== "completed") {
         return {
           status: "error",
-          message: "Request timed out. The property AI is taking longer than expected. Please try again with a simpler question.",
+          message: `Assistant run failed with status: ${runStatus.status}`,
           threadId: thread.id
         };
       }
       
-      // Adaptive polling: wait longer between checks as time passes
-      const waitTime = Math.min(1000 * (1 + Math.floor(checkCount / 3)), 5000);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-      checkCount++;
+      // Get the latest messages from the thread
+      const messagesResponse = await openai.beta.threads.messages.list(thread.id, {
+        limit: 1,
+        order: "desc",
+      });
       
-      runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-    }
-    
-    if (runStatus.status !== "completed") {
+      const latestMessage = messagesResponse.data[0];
+      
+      // Return the final result
       return {
-        status: "error",
-        message: `Assistant run failed with status: ${runStatus.status}`,
+        status: "success",
+        message: {
+          role: "assistant",
+          content: latestMessage.content[0].text.value,
+        },
         threadId: thread.id
       };
+      
+    } catch (threadError) {
+      console.error("Thread processing error:", threadError);
+      return {
+        status: "error",
+        message: "Error processing your request with the AI assistant.",
+        details: threadError.message
+      };
     }
-    // Get the latest messages from the thread
-    const messagesResponse = await openai.beta.threads.messages.list(thread.id, {
-      limit: 1,
-      order: "desc",
-    });
-    const latestMessage = messagesResponse.data[0];
-    return {
-      message: {
-        role: "assistant",
-        content: latestMessage.content[0].text.value,
-      },
-      status: "success",
-      threadId: thread.id
-    };
+    
   } catch (error) {
     console.error("AI Chat API Error:", error);
     return {
@@ -101,7 +121,7 @@ export default defineEventHandler(async (event) => {
   }
 });
 
-// Enhanced helper function to format property information with more details
+// Enhanced helper function to format property information
 function createEnhancedPropertyContext(property) {
   if (!property) return "No property information available.";
   
@@ -158,9 +178,9 @@ function createEnhancedPropertyContext(property) {
   
   // Transaction history
   let transactionHistory = "No transaction history available.";
-  if (property.transactions && property.transactions.length > 0) {
+  if (property.saleHistory && property.saleHistory.length > 0) {
     transactionHistory = "Transaction History:\n";
-    property.transactions.slice(0, 3).forEach((transaction, index) => {
+    property.saleHistory.slice(0, 3).forEach((transaction, index) => {
       transactionHistory += `
         Transaction ${index + 1}:
         Date: ${transaction.saleDate || "Unknown"}
@@ -178,59 +198,11 @@ function createEnhancedPropertyContext(property) {
     const mortgage = currentMortgages[0];
     mortgageDetails = `
       Lender: ${mortgage.lenderName || "Unknown"}
-      Loan Amount: ${mortgage.loanAmount || "Unknown"}
+      Loan Amount: ${mortgage.amount || mortgage.loanAmount || "Unknown"}
       Loan Type: ${mortgage.loanType || "Unknown"}
       Interest Rate: ${mortgage.interestRate || "Unknown"}
       Maturity Date: ${mortgage.maturityDate || "Unknown"}
     `;
-  }
-  
-  // School information
-  let schoolInfo = "No school information available.";
-  if (schools && schools.length > 0) {
-    schoolInfo = "School Information:\n";
-    const schoolTypes = {
-      elementary: schools.filter(s => s.grades?.includes('K') || s.grades?.includes('6')),
-      middle: schools.filter(s => s.grades?.includes('6-8') || s.grades?.includes('7-8')),
-      high: schools.filter(s => s.grades?.includes('9') || s.grades?.includes('12'))
-    };
-    
-    // Get the highest rated school of each type
-    const bestSchools = {};
-    for (const [type, typeSchools] of Object.entries(schoolTypes)) {
-      if (typeSchools.length > 0) {
-        bestSchools[type] = typeSchools.reduce((best, school) => 
-          (school.rating > (best?.rating || 0)) ? school : best, null);
-      }
-    }
-    
-    // Add best schools to context
-    if (bestSchools.elementary) {
-      const school = bestSchools.elementary;
-      schoolInfo += `
-        Best Elementary School: ${school.name}
-        Rating: ${school.rating}/10
-        Distance: Nearby
-      `;
-    }
-    
-    if (bestSchools.middle) {
-      const school = bestSchools.middle;
-      schoolInfo += `
-        Best Middle School: ${school.name}
-        Rating: ${school.rating}/10
-        Distance: Nearby
-      `;
-    }
-    
-    if (bestSchools.high) {
-      const school = bestSchools.high;
-      schoolInfo += `
-        Best High School: ${school.name}
-        Rating: ${school.rating}/10
-        Distance: Nearby
-      `;
-    }
   }
   
   // Comparable properties
@@ -238,16 +210,16 @@ function createEnhancedPropertyContext(property) {
   if (property.comps && property.comps.length > 0) {
     // Calculate average values for comps to determine ARV
     const validComps = property.comps.filter(comp => 
-      comp.squareFeet && comp.lastSaleAmount && comp.estimatedValue);
+      comp.squareFeet && (comp.lastSaleAmount || comp.estimatedValue));
     
     if (validComps.length > 0) {
       const avgSqFtPrice = validComps.reduce((sum, comp) => 
-        sum + (comp.estimatedValue / comp.squareFeet), 0) / validComps.length;
+        sum + (parseFloat(comp.estimatedValue) / parseFloat(comp.squareFeet)), 0) / validComps.length;
       
       const avgSalePrice = validComps.reduce((sum, comp) => 
-        sum + Number(comp.lastSaleAmount || comp.estimatedValue), 0) / validComps.length;
+        sum + parseFloat(comp.lastSaleAmount || comp.estimatedValue), 0) / validComps.length;
       
-      const potentialARV = Math.round(avgSqFtPrice * squareFeet);
+      const potentialARV = Math.round(avgSqFtPrice * parseFloat(squareFeet));
       
       compsInfo = `Comparable Properties Analysis:
       Average Price Per SqFt: $${Math.round(avgSqFtPrice)}
@@ -268,7 +240,7 @@ function createEnhancedPropertyContext(property) {
         Sq Ft: ${comp.squareFeet || "Unknown"}
         Bed/Bath: ${comp.bedrooms || "Unknown"}/${comp.bathrooms || "Unknown"}
         Year Built: ${comp.yearBuilt || "Unknown"}
-        Price/SqFt: $${comp.squareFeet ? Math.round((comp.lastSaleAmount || comp.estimatedValue) / comp.squareFeet) : "Unknown"}
+        Price/SqFt: $${comp.squareFeet ? Math.round((parseFloat(comp.lastSaleAmount || comp.estimatedValue) / parseFloat(comp.squareFeet))) : "Unknown"}
         `;
       });
     }
@@ -278,11 +250,25 @@ function createEnhancedPropertyContext(property) {
   const description = zillow.description || propertyInfo.description || "No description available.";
   
   // Rental information
+  const suggestedRentNum = parseFloat(suggestedRent) || 0;
+  const estimatedMortgagePaymentNum = parseFloat(estimatedMortgagePayment) || 0;
+  
   const rentInfo = `
     Suggested Monthly Rent: $${suggestedRent}
-    Potential Gross Annual Rental Income: $${suggestedRent * 12}
+    Potential Gross Annual Rental Income: $${suggestedRentNum * 12}
     Estimated Monthly Mortgage Payment: $${estimatedMortgagePayment}
-    Potential Monthly Cashflow (before expenses): $${suggestedRent - estimatedMortgagePayment}
+    Potential Monthly Cashflow (before expenses): $${suggestedRentNum - estimatedMortgagePaymentNum}
+  `;
+  
+  // Additional property flags
+  const flagsInfo = `
+    Inherited: ${property.inherited ? 'Yes' : 'No'}
+    Absentee Owner: ${property.absenteeOwner ? 'Yes' : 'No'}
+    High Equity: ${property.highEquity ? 'Yes' : 'No'}
+    Pre-Foreclosure: ${property.preForeclosure ? 'Yes' : 'No'}
+    Free & Clear: ${property.freeClear ? 'Yes' : 'No'}
+    Owner Occupied: ${property.ownerOccupied ? 'Yes' : 'No'}
+    Vacant: ${property.vacant ? 'Yes' : 'No'}
   `;
   
   // Create a comprehensive context
@@ -317,6 +303,10 @@ function createEnhancedPropertyContext(property) {
     =================
     Owner Name: ${ownerName}
     
+    PROPERTY STATUS:
+    =================
+    ${flagsInfo}
+    
     MORTGAGE DETAILS:
     =================
     ${mortgageDetails}
@@ -328,10 +318,6 @@ function createEnhancedPropertyContext(property) {
     COMPARABLE PROPERTIES (ARV ANALYSIS):
     =================
     ${compsInfo}
-    
-    SCHOOL INFORMATION:
-    =================
-    ${schoolInfo}
     
     PROPERTY DESCRIPTION:
     =================

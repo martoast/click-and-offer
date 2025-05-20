@@ -240,4 +240,5 @@ watch(messages, () => {
 onMounted(() => {
   scrollToBottom();
 });
+
 </script>

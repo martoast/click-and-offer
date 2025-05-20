@@ -65,10 +65,10 @@
             class="w-full h-full object-cover"
             autoplay 
             loop 
-            muted 
+            muted="0"
             playsinline
           >
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-businessman-working-with-graphs-on-computer-4826-large.mp4" type="video/mp4">
+            <source src="https://streamable.com/e/8i8yw4?" type="video/mp4">
           </video>
         </div>
       </div>

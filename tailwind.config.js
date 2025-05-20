@@ -4,9 +4,9 @@ const defaultTheme = require('tailwindcss/defaultTheme')
 
 export default {
   content: [
-    './components/*.{html,js,ts,vue}',
-    './layouts/*.{html,js,ts,vue}',
-    './pages/*.{html,js,ts,vue}'
+    './components/**/*.{html,js,ts,vue}',
+    './layouts/**/*.{html,js,ts,vue}',
+    './pages/**/*.{html,js,ts,vue}'
   ],
   theme: {
     extend: {
@@ -37,15 +37,15 @@ export default {
       red: {
         50: '#fef2f2',
         100: '#fee2e2',
-        200: '#fbd5d5',
-        300: '#f8b4b4',
-        400: '#f58787',
-        500: '#bb2b2b',  // Your primary color
-        600: '#a52525',
-        700: '#8e1f1f',
-        800: '#771a1a',
-        900: '#601414',
-        950: '#490f0f',
+        200: '#fecaca',
+        300: '#fca5a5',
+        400: '#f87171',
+        500: '#ef4444',
+        600: '#dc2626',
+        700: '#b91c1c',
+        800: '#991b1b',
+        900: '#7f1d1d',
+        950: '#450a0a',
       },
       green: {
         50: 'rgba(196, 224, 180, 0.15)',
@@ -99,19 +99,6 @@ export default {
         900: '#111827',
         950: '#030712',
       },
-      red: {
-        50: '#fef2f2',
-        100: '#fee2e2',
-        200: '#fecaca',
-        300: '#fca5a5',
-        400: '#f87171',
-        500: '#ef4444',
-        600: '#dc2626',
-        700: '#b91c1c',
-        800: '#991b1b',
-        900: '#7f1d1d',
-        950: '#450a0a',
-      },
       blue: {
         '50': '#d1eaff',
         '100': '#a3d4ff',
@@ -132,4 +119,3 @@ export default {
     require('@tailwindcss/typography')
   ],
 }
-

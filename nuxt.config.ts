@@ -13,7 +13,8 @@ export default defineNuxtConfig({
       ZILLOW_API_KEY: process.env.ZILLOW_API_KEY,
       GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
       WHOP_CLIENT_ID: process.env.WHOP_CLIENT_ID,
-      WHOP_REDIRECT_URI: process.env.WHOP_REDIRECT_URI
+      WHOP_REDIRECT_URI: process.env.WHOP_REDIRECT_URI,
+      ADMIN_CODE: process.env.ADMIN_CODE
     }
   }
 })

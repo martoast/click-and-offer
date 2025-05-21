@@ -1,41 +1,11 @@
 <template>
-  <div
-    class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden"
-  >
-    <!-- Background gradient -->
-    <div
-      class="absolute inset-0 bg-gradient-radial from-yellow-gold/5 via-gray-900/30 to-black/90"
-    ></div>
-
-    <!-- Animated background elements -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div
-        v-for="i in 5"
-        :key="i"
-        class="absolute rounded-full opacity-10 animate-float"
-        :style="{
-          width: `${50 + i * 30}px`,
-          height: `${50 + i * 30}px`,
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
-          animationDelay: `${i * 2}s`,
-          animationDuration: `${15 + i * 5}s`,
-          background:
-            i % 2 === 0
-              ? 'linear-gradient(135deg, #d4af3780, #202020)'
-              : 'linear-gradient(135deg, #f9d77680, #202020)',
-        }"
-      ></div>
-    </div>
-
+  <div class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
+    <!-- Background gradient and animated elements remain the same -->
+    
     <!-- Main content -->
-    <div
-      class="relative z-10 w-full max-w-6xl mx-auto px-4 flex flex-col lg:flex-row items-center gap-12"
-    >
+    <div class="relative z-10 w-full max-w-6xl mx-auto px-4 flex flex-col lg:flex-row items-center gap-12">
       <!-- Left side - Login form -->
-      <div
-        class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left"
-      >
+      <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left">
         <img src="/logo.png" alt="Click&Offer Logo" class="h-16 mb-8" />
 
         <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
@@ -47,9 +17,10 @@
           and closing deals with confidence.
         </p>
 
+        <!-- Whop Login Button -->
         <button
           @click="loginWithWhop"
-          class="bg-gradient-to-r from-yellow-600 to-yellow-gold px-8 py-4 rounded-lg font-bold text-black hover:from-yellow-gold hover:to-yellow-gold-light transition-all duration-300 shadow-md border border-yellow-gold-dark/50 relative overflow-hidden group mb-6"
+          class="w-full bg-gradient-to-r from-yellow-600 to-yellow-gold px-8 py-4 rounded-lg font-bold text-black hover:from-yellow-gold hover:to-yellow-gold-light transition-all duration-300 shadow-md border border-yellow-gold-dark/50 relative overflow-hidden group mb-6"
         >
           <span class="relative z-10 flex items-center justify-center text-lg">
             Login with Whop
@@ -59,6 +30,48 @@
             class="absolute inset-0 bg-gradient-to-r from-yellow-gold-light to-yellow-gold opacity-0 group-hover:opacity-30 transition-opacity duration-300"
           ></span>
         </button>
+
+        <!-- Admin Login Option -->
+        <div class="w-full mt-4 mb-6">
+          <div class="flex items-center justify-center lg:justify-start mb-4">
+            <div class="h-px bg-gray-700 flex-grow"></div>
+            <span class="px-4 text-gray-400">OR</span>
+            <div class="h-px bg-gray-700 flex-grow"></div>
+          </div>
+          
+          <div v-if="!showAdminForm" class="flex justify-center lg:justify-start">
+            <button 
+              @click="showAdminForm = true" 
+              class="text-yellow-gold underline hover:text-yellow-gold-light transition-colors"
+            >
+              Login with Admin Code
+            </button>
+          </div>
+          
+          <div v-else class="w-full">
+            <input 
+              v-model="adminCode" 
+              type="password" 
+              placeholder="Enter admin code" 
+              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white mb-3 focus:border-yellow-gold focus:outline-none"
+            />
+            <div class="flex gap-3">
+              <button 
+                @click="loginWithAdminCode" 
+                class="flex-1 bg-gray-800 border border-yellow-gold text-yellow-gold px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Login
+              </button>
+              <button 
+                @click="showAdminForm = false" 
+                class="flex-1 bg-transparent border border-gray-700 text-gray-400 px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            <p v-if="errorMessage" class="text-red-500 mt-2 text-sm">{{ errorMessage }}</p>
+          </div>
+        </div>
 
         <!-- New Membership CTA -->
         <div class="text-center lg:text-left">
@@ -76,9 +89,7 @@
       </div>
 
       <!-- Right side - Demo video -->
-      <div
-        class="w-full lg:w-1/2 rounded-lg overflow-hidden shadow-2xl border border-yellow-gold/30"
-      >
+      <div class="w-full lg:w-1/2 rounded-lg overflow-hidden shadow-2xl border border-yellow-gold/30">
         <iframe
           src="https://streamable.com/e/8i8yw4"
           frameborder="0"
@@ -94,14 +105,21 @@
 
 <script setup>
 const config = useRuntimeConfig();
+const showAdminForm = ref(false);
+const adminCode = ref('');
+const errorMessage = ref('');
+
+// Get the admin code from environment variables
+const validAdminCode = config.public.ADMIN_CODE || 'your-default-admin-code';
 
 onMounted(() => {
   // Check if user is already authenticated
   const hasAccess = localStorage.getItem("whopAccess");
-  if (hasAccess) {
+  const hasAdminAccess = localStorage.getItem("adminAccess");
+  
+  if (hasAccess || hasAdminAccess) {
     navigateTo("/");
   }
-  
 });
 
 const loginWithWhop = () => {
@@ -110,6 +128,20 @@ const loginWithWhop = () => {
 
   const authUrl = `https://whop.com/oauth/?scope=openid+user&response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
   window.location.href = authUrl;
+};
+
+const loginWithAdminCode = () => {
+  if (adminCode.value === validAdminCode) {
+    // Store admin access in localStorage
+    localStorage.setItem("adminAccess", "true");
+    // Navigate to homepage
+    navigateTo("/");
+  } else {
+    errorMessage.value = "Invalid admin code";
+    setTimeout(() => {
+      errorMessage.value = "";
+    }, 3000);
+  }
 };
 </script>
 

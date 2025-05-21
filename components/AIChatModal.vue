@@ -98,7 +98,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue';
+import { ref, onMounted, watch, nextTick, computed } from 'vue';
+import { useRuntimeConfig } from 'nuxt/app';
 
 const props = defineProps({
   property: {
@@ -107,6 +108,7 @@ const props = defineProps({
   }
 });
 
+const config = useRuntimeConfig();
 const emit = defineEmits(['close']);
 
 // Chat state
@@ -117,6 +119,23 @@ const isLongWait = ref(false);
 const longWaitTimer = ref(null);
 const chatContainer = ref(null);
 const threadId = ref(null);
+
+// Determine API endpoint
+const apiEndpoint = ref('');
+
+// Set the API endpoint based on window location 
+onMounted(() => {
+  // If we're on Netlify (or any non-localhost), use the Netlify function
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1';
+  
+  apiEndpoint.value = isLocalhost 
+    ? '/api/ai-chat'                 // Local development
+    : '/.netlify/functions/ai-chat'; // Deployed on Netlify
+  
+  console.log(`Using API endpoint: ${apiEndpoint.value}`);
+  scrollToBottom();
+});
 
 // Suggested questions for the user
 const chatSuggestions = [
@@ -183,8 +202,8 @@ const sendMessage = async (text) => {
   }, 15000);
   
   try {
-    // Call the Netlify function instead of the Nuxt API route
-    const response = await fetch('/.netlify/functions/ai-chat', {
+    // Use the determined API endpoint
+    const response = await fetch(apiEndpoint.value, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -234,10 +253,6 @@ const sendMessage = async (text) => {
 
 // Watch for changes in messages to scroll to bottom
 watch(messages, () => {
-  scrollToBottom();
-});
-
-onMounted(() => {
   scrollToBottom();
 });
 

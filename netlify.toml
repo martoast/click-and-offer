@@ -1,0 +1,23 @@
+[build]
+  # Directory with the built Nuxt app
+  publish = "dist"
+  # Build command for Nuxt 3
+  command = "yarn run build"
+  # Directory with serverless functions
+  functions = "netlify/functions"
+
+# Redirect /api/ai-chat to the Netlify function (ensures both endpoints work)
+[[redirects]]
+  from = "/api/ai-chat"
+  to = "/.netlify/functions/ai-chat"
+  status = 200
+
+# Handle redirects for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables needed by the function
+[build.environment]
+  NODE_VERSION = "18" # Set Node.js version for compatibility with OpenAI SDK

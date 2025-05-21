@@ -183,8 +183,8 @@ const sendMessage = async (text) => {
   }, 15000);
   
   try {
-    // Call the API with the threadId if it exists
-    const response = await fetch('/api/ai-chat', {
+    // Call the Netlify function instead of the Nuxt API route
+    const response = await fetch('/.netlify/functions/ai-chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

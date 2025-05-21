@@ -91,7 +91,7 @@
       <!-- Right side - Demo video -->
       <div class="w-full lg:w-1/2 rounded-lg overflow-hidden shadow-2xl border border-yellow-gold/30">
         <iframe
-          src="https://streamable.com/e/8i8yw4"
+          src="https://streamable.com/e/rzncnt"
           frameborder="0"
           width="100%"
           height="100%"

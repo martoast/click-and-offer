@@ -165,7 +165,7 @@
             </p>
           </div>
           <p class="text-xs text-gray-400 italic">
-            Seller Note = Purchase Price - Down Payment
+            Seller Note = Purchase Price - Down Payment - Commission
           </p>
         </div>
 

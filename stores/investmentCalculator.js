@@ -173,10 +173,12 @@ export const useInvestmentCalculatorStore = defineStore('investmentCalculator', 
       if (pp <= 0) return defaults;
       
       const downPaymentPercent = pp > 0 ? (downPaymentAmount / pp) * 100 : 0;
-      const sellerNoteAmount = pp - downPaymentAmount;
       
       // Calculate commission amount (SELLER ALWAYS PAYS in seller financing)
       const commissionAmount = pp * (Number(state.sellerFinancingInputs.commissionPercent) / 100);
+      
+      // UPDATED: Seller Note = Purchase Price - Down Payment - Commission
+      const sellerNoteAmount = pp - downPaymentAmount - commissionAmount;
       
       // Calculate payments with principal/interest breakdown
       const mortgageDetails = calculateMortgagePayment(

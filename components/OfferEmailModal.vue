@@ -15,6 +15,25 @@
       
       <!-- Modal Body - Make this section scrollable -->
       <div class="p-6 overflow-y-auto flex-1">
+        <!-- Investment Scenario Selection -->
+        <div class="mb-6 p-4 bg-gray-800/50 rounded-lg border border-yellow-gold/20">
+          <label class="block text-sm font-medium text-gray-300 mb-3">Select Investment Scenario</label>
+          <div class="grid grid-cols-3 gap-3">
+            <button
+              v-for="scenario in scenarios"
+              :key="scenario.value"
+              @click="selectedScenario = scenario.value"
+              class="p-3 rounded-md border transition-all duration-200"
+              :class="selectedScenario === scenario.value 
+                ? 'bg-yellow-600/20 border-yellow-gold text-yellow-gold' 
+                : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600'"
+            >
+              <div class="text-sm font-medium">{{ scenario.label }}</div>
+              <div class="text-xs mt-1 opacity-75">{{ scenario.description }}</div>
+            </button>
+          </div>
+        </div>
+
         <div class="flex mb-4">
           <div class="flex-1">
             <label class="block text-xs text-gray-400 mb-1">Your Name</label>
@@ -126,6 +145,7 @@
 
 <script setup>
 import { ref, watch, computed, onMounted } from "vue";
+import { useInvestmentCalculatorStore } from "~/stores/investmentCalculator";
 
 const props = defineProps({
   showModal: {
@@ -175,14 +195,13 @@ const props = defineProps({
   agentEmail: {
     type: String,
     default: "N/A"
-  },
-  commissionPercent: {
-    type: Number,
-    default: 3
   }
 });
 
 const emit = defineEmits(['update:showModal']);
+
+// Get the investment calculator store
+const investmentStore = useInvestmentCalculatorStore();
 
 // --- Local State for Modal ---
 const napkinCopied = ref(false);
@@ -192,6 +211,28 @@ const emailTextRef = ref(null);
 
 // --- Customizable Fields ---
 const yourName = ref("");
+
+// Investment scenario selection
+const selectedScenario = ref('SellerFinancing');
+
+// Scenario options
+const scenarios = [
+  { 
+    value: 'SubTo', 
+    label: 'Subject-To',
+    description: 'Take over existing loan'
+  },
+  { 
+    value: 'SellerFinancing', 
+    label: 'Seller Financing',
+    description: 'Owner carries loan'
+  },
+  { 
+    value: 'CashOffer', 
+    label: 'Cash Offer',
+    description: 'All cash purchase'
+  }
+];
 
 // --- Methods ---
 const formatPrice = (price) => {
@@ -254,70 +295,76 @@ const copyBothTexts = async () => {
   }
 };
 
-// Parse price from formatted string or use direct value
-const parsePriceValue = (formattedPrice) => {
-  if (!formattedPrice || formattedPrice === "N/A") return 0;
-  return parseFloat(formattedPrice.replace(/[^0-9.-]+/g, '')) || 0;
-};
-
-// Calculate commission amount based on purchase price
-const calculatedAgentCommission = computed(() => {
-  const purchasePrice = parsePriceValue(props.formattedPurchaseOrListingPrice);
-  if (!purchasePrice) return "N/A";
-  return formatPrice(purchasePrice * (props.commissionPercent / 100));
-});
-
-// Calculate balance to close (Purchase Price - Loan Balance)
-const calculatedBalanceToClose = computed(() => {
-  const purchasePrice = parsePriceValue(props.formattedPurchaseOrListingPrice);
-  const openLoanBalance = parsePriceValue(props.formattedOpenLoanBalance);
-  if (!purchasePrice) return "N/A";
-  return formatPrice(purchasePrice - openLoanBalance);
-});
-
-// Cash to seller is same as balance to close for simple purchase
-const calculatedCashToSeller = computed(() => {
-  return calculatedBalanceToClose.value;
-});
-
-// Placeholder values for seller carryback calculations
-// In a real app, these would be calculated based on actual inputs
-const calculatedSellerCarrybackAmount = computed(() => {
-  return "N/A";
-});
-
-const calculatedSellerCarrybackInterestRate = computed(() => {
-  return "N/A";
-});
-
-const calculatedSellerCarrybackMonthlyPayments = computed(() => {
-  return "N/A";
+// Get calculated values based on selected scenario
+const calculatedValues = computed(() => {
+  if (selectedScenario.value === 'SubTo') {
+    return {
+      purchasePrice: formatPrice(investmentStore.subtoInputs.purchasePrice),
+      cashToSeller: formatPrice(investmentStore.subtoInputs.cashToSeller),
+      balanceToClose: formatPrice(investmentStore.subtoCalculated.totalCashNeeded),
+      sellerCarrybackAmount: formatPrice(investmentStore.subtoCalculated.sellerCarryAmount),
+      sellerCarrybackRate: investmentStore.subtoInputs.includeSellerCarryback 
+        ? `${investmentStore.subtoInputs.sellerCarryRate}%` 
+        : "N/A",
+      sellerCarrybackPayment: formatPrice(investmentStore.subtoCalculated.sellerCarryMonthlyPayment),
+      commissionPercent: investmentStore.subtoInputs.commissionPercent,
+      commissionAmount: formatPrice(investmentStore.subtoCalculated.commissionAmount),
+      balloonTerm: investmentStore.subtoInputs.balloonTerm,
+      balloonPayment: formatPrice(investmentStore.subtoCalculated.balloonPayment)
+    };
+  } else if (selectedScenario.value === 'SellerFinancing') {
+    return {
+      purchasePrice: formatPrice(investmentStore.sellerFinancingInputs.purchasePrice),
+      cashToSeller: formatPrice(investmentStore.sellerFinancingInputs.downPaymentAmount),
+      balanceToClose: formatPrice(investmentStore.sellerFinancingCalculated.totalCashNeeded),
+      sellerCarrybackAmount: formatPrice(investmentStore.sellerFinancingCalculated.sellerNoteAmount),
+      sellerCarrybackRate: `${investmentStore.sellerFinancingInputs.sellerRate}%`,
+      sellerCarrybackPayment: formatPrice(investmentStore.sellerFinancingCalculated.monthlyPaymentPI),
+      commissionPercent: investmentStore.sellerFinancingInputs.commissionPercent,
+      commissionAmount: formatPrice(investmentStore.sellerFinancingCalculated.commissionAmount),
+      balloonTerm: investmentStore.sellerFinancingInputs.balloonTerm,
+      balloonPayment: formatPrice(investmentStore.sellerFinancingCalculated.balloonPayment)
+    };
+  } else { // CashOffer
+    return {
+      purchasePrice: formatPrice(investmentStore.cashOfferInputs.offerPrice),
+      cashToSeller: formatPrice(investmentStore.cashOfferInputs.offerPrice),
+      balanceToClose: formatPrice(investmentStore.cashOfferCalculated.totalCashNeeded),
+      sellerCarrybackAmount: "N/A",
+      sellerCarrybackRate: "N/A",
+      sellerCarrybackPayment: "N/A",
+      commissionPercent: 0, // No commission on cash offers typically
+      commissionAmount: "N/A",
+      balloonTerm: "N/A",
+      balloonPayment: "N/A"
+    };
+  }
 });
 
 // Generate NapkinSigned text template with calculated values
 const generateNapkinSignedTemplate = () => {
-  const address = props.propertyAddress;
-  const agentName = props.listingAgentName;
-  const ownerName = props.sellerName;
+  const values = calculatedValues.value;
   
   return `If you are using NapkinSigned APP please copy this text:
-Property Address: ${address}
+Property Address: ${props.propertyAddress}
 APN: ${props.apn}
 Legal Description: ${props.legalDescription}
 County: ${props.county}
-Sellers Name: ${ownerName}
+Sellers Name: ${props.sellerName}
+Purchase Price: ${values.purchasePrice}
 Open Loan Balance: ${props.formattedOpenLoanBalance}
-Cash to Seller at Closing: ${calculatedCashToSeller.value}
-Balance to Close: ${calculatedBalanceToClose.value}
-Seller Carryback Amount: ${calculatedSellerCarrybackAmount.value}
-Seller Carryback Interest Rate: ${calculatedSellerCarrybackInterestRate.value}
-Seller Carryback Monthly Payments: ${calculatedSellerCarrybackMonthlyPayments.value}
-Listing Agent's Name: ${agentName}
+Cash to Seller at Closing: ${values.cashToSeller}
+Balance to Close: ${values.balanceToClose}
+Seller Carryback Amount: ${values.sellerCarrybackAmount}
+Seller Carryback Interest Rate: ${values.sellerCarrybackRate}
+Seller Carryback Monthly Payments: ${values.sellerCarrybackPayment}
+Listing Agent's Name: ${props.listingAgentName}
 Listing Agent's Phone: ${props.agentPhone}
 Listing Agent's Email: ${props.agentEmail !== "N/A" ? props.agentEmail : "N/A"}
-Agent Commission: ${props.commissionPercent}%
-Agent Commission Amount: ${calculatedAgentCommission.value}
-Purchase Price / Listing Price: ${props.formattedPurchaseOrListingPrice}`;
+Agent Commission: ${values.commissionPercent}%
+Agent Commission Amount: ${values.commissionAmount}${values.balloonTerm !== "N/A" ? `
+Balloon Payment Term: ${values.balloonTerm} years
+Balloon Payment Amount: ${values.balloonPayment}` : ''}`;
 };
 
 // Generate email text template with calculated values
@@ -327,20 +374,34 @@ const generateEmailTemplate = () => {
   const ownerName = props.sellerName;
   const recipientName = agentName !== "N/A" ? agentName : ownerName;
   const name = yourName.value || "Your Name";
+  const values = calculatedValues.value;
+  
+  let scenarioSpecificText = '';
+  
+  if (selectedScenario.value === 'SubTo') {
+    scenarioSpecificText = `This is a Subject-To offer where we would take over the existing loan payments.`;
+  } else if (selectedScenario.value === 'SellerFinancing') {
+    scenarioSpecificText = `This is a Seller Financing offer where the owner would carry the financing.`;
+  } else {
+    scenarioSpecificText = `This is an all-cash offer with quick closing.`;
+  }
   
   return `Hi ${recipientName},
 
 Hope you're doing great. Please see the attached offer for ${address}:
 
-•    Purchase Price / Listing Price: ${props.formattedPurchaseOrListingPrice}
+${scenarioSpecificText}
+
+•    Purchase Price: ${values.purchasePrice}
 •    Open Loan Balance: ${props.formattedOpenLoanBalance}
-•    Balance to Close: ${calculatedBalanceToClose.value}
-•    Cash to Seller at Closing: ${calculatedCashToSeller.value}
-•    Seller Carryback Amount: ${calculatedSellerCarrybackAmount.value}
-•    Seller Carryback Interest Rate: ${calculatedSellerCarrybackInterestRate.value}
-•    Seller Carryback Monthly Payments: ${calculatedSellerCarrybackMonthlyPayments.value}
-•    Agent Commission: ${props.commissionPercent}%
-•    Agent Commission Amount: ${calculatedAgentCommission.value}
+•    Balance to Close: ${values.balanceToClose}
+•    Cash to Seller at Closing: ${values.cashToSeller}${values.sellerCarrybackAmount !== "N/A" ? `
+•    Seller Carryback Amount: ${values.sellerCarrybackAmount}
+•    Seller Carryback Interest Rate: ${values.sellerCarrybackRate}
+•    Seller Carryback Monthly Payments: ${values.sellerCarrybackPayment}` : ''}${values.commissionAmount !== "N/A" ? `
+•    Agent Commission: ${values.commissionPercent}%
+•    Agent Commission Amount: ${values.commissionAmount}` : ''}${values.balloonPayment !== "N/A" ? `
+•    Balloon Payment (${values.balloonTerm} years): ${values.balloonPayment}` : ''}
 •    Listing Agent's Email: ${props.agentEmail !== "N/A" ? props.agentEmail : "N/A"}
 
 If you're interested, please forward the mortgage statement if applicable or any counter terms to help us move faster.
@@ -358,9 +419,12 @@ ${name}`;
 const napkinSignedText = ref("");
 const emailText = ref("");
 
-// Initialize fields on modal opening
+// Initialize with the store's selected scenario when modal opens
 watch(() => props.showModal, (isVisible) => {
   if (isVisible) {
+    // Set the selected scenario to match the store
+    selectedScenario.value = investmentStore.selectedScenario;
+    
     // Generate the templates with current values
     napkinSignedText.value = generateNapkinSignedTemplate();
     emailText.value = generateEmailTemplate();
@@ -370,7 +434,7 @@ watch(() => props.showModal, (isVisible) => {
   }
 }, { immediate: true });
 
-// Update the templates when inputs change
+// Update the templates when inputs or scenario change
 watch([
   () => props.propertyAddress,
   () => props.sellerName,
@@ -382,8 +446,12 @@ watch([
   () => props.county,
   () => props.legalDescription,
   () => props.agentPhone,
-  () => props.commissionPercent,
-  () => yourName.value
+  () => yourName.value,
+  () => selectedScenario.value,
+  // Watch store values that might change
+  () => investmentStore.subtoCalculated,
+  () => investmentStore.sellerFinancingCalculated,
+  () => investmentStore.cashOfferCalculated
 ], () => {
   if (props.showModal) {
     napkinSignedText.value = generateNapkinSignedTemplate();

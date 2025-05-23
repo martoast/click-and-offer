@@ -754,7 +754,6 @@
       :legalDescription="computedLegalDescription"
       :agentPhone="computedListingAgentPhone"
       :agentEmail="computedListingAgentEmail"
-      :commissionPercent="3"
     />
   </div>
 </template>
@@ -762,6 +761,10 @@
 <script setup>
 import { ref, watch, computed, onMounted } from "vue";
 import OfferEmailModal from "./OfferEmailModal.vue";
+import { useInvestmentCalculatorStore } from "~/stores/investmentCalculator";
+
+// Get the investment calculator store
+const investmentStore = useInvestmentCalculatorStore();
 
 const props = defineProps({
   property: {

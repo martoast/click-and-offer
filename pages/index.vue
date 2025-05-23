@@ -5,16 +5,17 @@
     
     <!-- Animated Background Elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div v-for="i in 5" :key="i" 
+      <div v-for="element in floatingElements" 
+           :key="element.id"
            class="absolute rounded-full opacity-10 animate-float"
            :style="{
-             width: `${50 + (i * 30)}px`,
-             height: `${50 + (i * 30)}px`,
-             top: `${Math.random() * 100}%`,
-             left: `${Math.random() * 100}%`,
-             animationDelay: `${i * 2}s`,
-             animationDuration: `${15 + (i * 5)}s`,
-             background: i % 2 === 0 ? 'linear-gradient(135deg, #d4af3780, #202020)' : 'linear-gradient(135deg, #f9d77680, #202020)'
+             width: element.width,
+             height: element.height,
+             top: element.top,
+             left: element.left,
+             animationDelay: element.animationDelay,
+             animationDuration: element.animationDuration,
+             background: element.background
            }">
       </div>
     </div>
@@ -27,7 +28,7 @@
     </div>
     
     <!-- Main Content -->
-    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-8">
+    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
       <!-- Logo and Branding -->
       <div class="mb-8 md:mb-12">
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter">
@@ -88,6 +89,9 @@ import AddressAutocomplete from '~/components/AddressAutocomplete.vue';
 const router = useRouter();
 const isLoading = ref(false);
 const isNavigating = ref(false);
+
+// Generate floating elements data once to avoid hydration issues
+const floatingElements = ref([]);
 
 // Benefits with icons - updated with gold theme
 const benefits = [
@@ -162,6 +166,20 @@ const updateLoadingState = (loading) => {
 };
 
 onMounted(() => {
+  // Generate positions after mount to avoid SSR mismatch
+  floatingElements.value = Array.from({ length: 5 }, (_, i) => ({
+    id: i,
+    width: `${50 + (i * 30)}px`,
+    height: `${50 + (i * 30)}px`,
+    top: `${Math.random() * 100}%`,
+    left: `${Math.random() * 100}%`,
+    animationDelay: `${i * 2}s`,
+    animationDuration: `${15 + (i * 5)}s`,
+    background: i % 2 === 0 
+      ? 'linear-gradient(135deg, #d4af3780, #202020)' 
+      : 'linear-gradient(135deg, #f9d77680, #202020)'
+  }));
+
   // Set up router navigation hooks to handle the navigation indicator
   router.beforeEach((to, from, next) => {
     if (to.path.includes('/property/')) {
@@ -177,13 +195,8 @@ onMounted(() => {
 });
 </script>
 
-<style>
-/* Base Styles */
-body {
-  @apply bg-black;
-}
-
-/* Custom Animations */
+<style scoped>
+/* Custom animations */
 @keyframes gradient-shift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -203,6 +216,7 @@ body {
   50% { opacity: 0.3; }
 }
 
+/* Custom utility classes */
 .animate-float {
   animation: float 20s ease-in-out infinite;
 }
@@ -216,17 +230,17 @@ body {
   animation: gradient-shift 15s ease infinite;
 }
 
-/* Custom Components Styling */
+.bg-gradient-radial {
+  background-image: radial-gradient(var(--tw-gradient-stops));
+}
+
+/* Component specific styles */
 .search-container {
   position: relative;
 }
 
 .search-glow {
   animation: pulse-slow 4s ease-in-out infinite;
-}
-
-.bg-gradient-radial {
-  background-image: radial-gradient(var(--tw-gradient-stops));
 }
 
 /* Responsive adjustments */

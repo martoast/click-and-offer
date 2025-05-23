@@ -196,24 +196,6 @@
             </p>
           </div>
 
-          <!-- Buyer Agent Fee -->
-          <div class="input-group">
-            <label class="input-label">Buyer Agent Fee ($)</label>
-            <div class="relative">
-              <span class="input-symbol-left">$</span>
-              <input
-                v-model.number="subtoInputs.buyerAgentFee"
-                type="number"
-                min="0"
-                class="input-field pl-8"
-                placeholder="Agent fee if applicable"
-              />
-            </div>
-            <p class="input-help">
-              Additional agent fees paid by buyer (if any)
-            </p>
-          </div>
-
           <!-- Include Seller Carryback Toggle -->
           <div class="input-group">
             <div class="flex items-center justify-between">
@@ -449,7 +431,7 @@
                 {{ formatPrice(subtoCalculated.totalCashNeeded) }}
               </div>
               <div class="text-xs text-gray-500 italic mt-1">
-                Cash to Seller<span v-if="subtoInputs.buyerAgentFee > 0"> + Agent Fees</span>
+                Commission + Cash to Seller
               </div>
             </div>
 

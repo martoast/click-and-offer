@@ -16,7 +16,6 @@ export const useInvestmentCalculatorStore = defineStore('investmentCalculator', 
       sellerCarryTerm: 30,
       balloonTerm: 5,
       commissionPercent: 6,
-      buyerAgentFee: 0, // Added: flat fee for buyer's agent if applicable
       monthlyRent: 0,
       vacancyRate: 5,
       maintenanceRate: 5,
@@ -31,7 +30,6 @@ export const useInvestmentCalculatorStore = defineStore('investmentCalculator', 
       sellerTerm: 30,
       balloonTerm: 5,
       commissionPercent: 6,
-      buyerAgentFee: 0, // Added: flat fee for buyer's agent if applicable
       monthlyRent: 0,
       propertyTax: 0,
       insurance: 0,
@@ -130,9 +128,8 @@ export const useInvestmentCalculatorStore = defineStore('investmentCalculator', 
       const annualCashFlow = monthlyCashFlow * 12;
       
       // CORRECTED: Balance to Close
-      // Balance to Close = Cash to Seller + Agent Fee (if any buyer portion)
-      const buyerAgentFee = Number(state.subtoInputs.buyerAgentFee) || 0;
-      const totalCashNeeded = cashSeller + buyerAgentFee;
+      // Balance to Close = Commission + Cash to Seller
+      const totalCashNeeded = commissionAmount + cashSeller;
       
       const cashOnCash = totalCashNeeded > 0 ? (annualCashFlow / totalCashNeeded) * 100 : 0;
       
@@ -212,9 +209,8 @@ export const useInvestmentCalculatorStore = defineStore('investmentCalculator', 
       const monthlyCashFlow = rent - totalMonthlyPITI - otherOpExMonthly;
       const annualCashFlow = monthlyCashFlow * 12;
       
-      // SIMPLIFIED: Balance to Close = Down Payment + Buyer Agent Fee
-      const buyerAgentFee = Number(state.sellerFinancingInputs.buyerAgentFee) || 0;
-      const totalCashNeeded = downPaymentAmount + buyerAgentFee;
+      // SIMPLIFIED: Balance to Close = Commission + Down Payment
+      const totalCashNeeded = commissionAmount + downPaymentAmount;
       
       const cashOnCash = totalCashNeeded > 0 ? (annualCashFlow / totalCashNeeded) * 100 : 0;
       

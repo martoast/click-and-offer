@@ -191,24 +191,6 @@
             Commission: {{ formatPrice(sellerFinancingCalculated.commissionAmount) }}
           </p>
         </div>
-
-        <!-- Buyer Agent Fee -->
-        <div class="input-group">
-          <label class="input-label">Buyer Agent Fee ($)</label>
-          <div class="relative">
-            <span class="input-symbol-left">$</span>
-            <input
-              v-model.number="sellerFinancingInputs.buyerAgentFee"
-              type="number"
-              min="0"
-              class="input-field pl-8"
-              placeholder="Agent fee if applicable"
-            />
-          </div>
-          <p class="input-help">
-            Additional agent fees paid by buyer (if any)
-          </p>
-        </div>
       </div>
 
       <!-- SF Common Inputs -->
@@ -351,7 +333,7 @@
               {{ formatPrice(sellerFinancingCalculated.totalCashNeeded) }}
             </div>
             <div class="text-xs text-gray-500 italic mt-1">
-              Down Payment<span v-if="sellerFinancingInputs.buyerAgentFee > 0"> + Agent Fees</span>
+              Commission + Down Payment
             </div>
           </div>
 

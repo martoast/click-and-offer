@@ -6,15 +6,6 @@ export default {
     './layouts/**/*.{html,js,ts,vue}',
     './pages/**/*.{html,js,ts,vue}'
   ],
-  safelist: [
-    'animate-float',
-    'animate-pulse-slow', 
-    'animate-gradient-slow',
-    'bg-gradient-radial',
-    'from-yellow-gold/5',
-    'via-gray-900/30',
-    'to-black/90'
-  ],
   theme: {
     extend: {
       fontFamily: {

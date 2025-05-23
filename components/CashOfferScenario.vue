@@ -152,15 +152,7 @@
               </p>
             </div>
           </div>
-          <!-- Custom Offer Note -->
-          <div class="input-group mt-4">
-            <label class="input-label">Notes for Cash Offer</label>
-            <textarea
-              v-model="cashOfferInputs.notes"
-              class="input-field p-3 h-24"
-              placeholder="Add any additional notes or considerations for this cash offer"
-            ></textarea>
-          </div>
+          
         </div>
         <!-- Cash Common Inputs -->
         <div class="md:col-span-2 pt-6 mt-2 border-t border-yellow-gold/20">

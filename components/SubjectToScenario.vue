@@ -18,57 +18,117 @@
 
     <!-- Required Fields Alert -->
     <div
-      class="p-4 border border-dashed border-amber-500/30 rounded-lg bg-amber-500/5 flex items-start space-x-3"
+      class="p-4 sm:p-6 border-2 border-dashed border-amber-500/40 rounded-xl bg-gradient-to-br from-amber-900/10 to-amber-800/5 backdrop-blur-sm"
     >
-      <div class="text-amber-400/90 mt-1 flex-shrink-0">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
-            clip-rule="evenodd"
-          />
-        </svg>
-      </div>
-      <div class="flex-grow">
-        <label
-          for="existingLoanBalance"
-          class="block text-sm font-medium text-amber-400 mb-2"
-        >
-          Enter Existing Loan Balance to Begin
-        </label>
-        <div class="flex gap-3 items-center">
-          <div class="relative flex-grow">
-            <span
-              class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none"
-              >$</span
+      <!-- Icon and Content Container -->
+      <div class="flex flex-col sm:flex-row sm:items-start sm:space-x-4">
+        <!-- Icon -->
+        <div class="flex items-center space-x-3 sm:space-x-0 mb-4 sm:mb-0">
+          <div class="relative">
+            <div
+              class="absolute inset-0 bg-amber-400/20 rounded-full blur-xl"
+            ></div>
+            <div
+              class="relative text-amber-400 bg-amber-500/10 p-3 rounded-full"
             >
-            <input
-              id="existingLoanBalance"
-              v-model.number="subtoInputs.existingLoanBalance"
-              type="number"
-              min="0"
-              placeholder="e.g., 250000"
-              class="input-field pl-8 !border-amber-500/30 focus:!border-amber-500 focus:!ring-amber-500/40"
-            />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
-          <button
-            @click="autoFillMortgageData"
-            class="px-3 py-1.5 rounded-lg border border-yellow-gold/30 bg-yellow-gold/10 hover:bg-yellow-gold/20 text-yellow-gold text-xs transition"
+          <!-- Mobile-only label -->
+          <label
+            for="existingLoanBalance"
+            class="text-base font-semibold text-amber-300 sm:hidden"
           >
-            Auto-Fill
-          </button>
-          <button
-            @click="subtoInputs.existingLoanBalance = null"
-            v-if="subtoInputs.existingLoanBalance"
-            class="px-3 py-1.5 rounded-lg border border-gray-700 hover:bg-gray-800 text-gray-400 text-xs transition"
+            Enter Existing Loan Balance
+          </label>
+        </div>
+
+        <!-- Form Content -->
+        <div class="flex-grow w-full">
+          <!-- Desktop label -->
+          <label
+            for="existingLoanBalance"
+            class="hidden sm:block text-lg font-semibold text-amber-300 mb-3"
           >
-            Reset
-          </button>
+            Enter Existing Loan Balance to Begin
+          </label>
+
+          <!-- Input and Buttons Container -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <!-- Input Field -->
+            <div class="relative flex-grow">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 pointer-events-none text-lg"
+                >$</span
+              >
+              <input
+                id="existingLoanBalance"
+                v-model.number="subtoInputs.existingLoanBalance"
+                type="number"
+                min="0"
+                placeholder="e.g., 250,000"
+                class="input-field pl-10 text-lg !border-amber-500/30 focus:!border-amber-500 focus:!ring-amber-500/40 h-12"
+              />
+            </div>
+
+            <!-- Button Group -->
+            <div class="flex gap-2 w-full sm:w-auto">
+              <button
+                @click="autoFillMortgageData"
+                class="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg border border-yellow-gold/30 bg-yellow-gold/10 hover:bg-yellow-gold/20 text-yellow-gold font-medium transition-all duration-200 hover:shadow-lg hover:shadow-yellow-gold/10 flex items-center justify-center space-x-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>Auto-Fill</span>
+              </button>
+              <button
+                @click="subtoInputs.existingLoanBalance = null"
+                v-if="subtoInputs.existingLoanBalance"
+                class="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg border border-gray-600 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 font-medium transition-all duration-200 flex items-center justify-center space-x-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>Reset</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Helper Text -->
+          <p class="mt-3 text-sm text-gray-400">
+            Enter the current outstanding loan balance to calculate your
+            subject-to deal
+          </p>
         </div>
       </div>
     </div>

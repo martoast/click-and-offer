@@ -295,6 +295,14 @@ const copyBothTexts = async () => {
   }
 };
 
+// Get existing loan balance from store when in SubTo scenario
+const formattedExistingLoanBalance = computed(() => {
+  if (selectedScenario.value === 'SubTo') {
+    return formatPrice(investmentStore.subtoInputs.existingLoanBalance);
+  }
+  return props.formattedOpenLoanBalance || "N/A";
+});
+
 // Get calculated values based on selected scenario
 const calculatedValues = computed(() => {
   if (selectedScenario.value === 'SubTo') {
@@ -352,7 +360,7 @@ Legal Description: ${props.legalDescription}
 County: ${props.county}
 Sellers Name: ${props.sellerName}
 Purchase Price: ${values.purchasePrice}
-Open Loan Balance: ${props.formattedOpenLoanBalance}
+Open Loan Balance: ${formattedExistingLoanBalance.value}
 Cash to Seller at Closing: ${values.cashToSeller}
 Balance to Close: ${values.balanceToClose}
 Seller Carryback Amount: ${values.sellerCarrybackAmount}
@@ -393,7 +401,7 @@ Hope you're doing great. Please see the attached offer for ${address}:
 ${scenarioSpecificText}
 
 •    Purchase Price: ${values.purchasePrice}
-•    Open Loan Balance: ${props.formattedOpenLoanBalance}
+•    Open Loan Balance: ${formattedExistingLoanBalance.value}
 •    Balance to Close: ${values.balanceToClose}
 •    Cash to Seller at Closing: ${values.cashToSeller}${values.sellerCarrybackAmount !== "N/A" ? `
 •    Seller Carryback Amount: ${values.sellerCarrybackAmount}
@@ -448,10 +456,12 @@ watch([
   () => props.agentPhone,
   () => yourName.value,
   () => selectedScenario.value,
+  () => formattedExistingLoanBalance.value,
   // Watch store values that might change
   () => investmentStore.subtoCalculated,
   () => investmentStore.sellerFinancingCalculated,
-  () => investmentStore.cashOfferCalculated
+  () => investmentStore.cashOfferCalculated,
+  () => investmentStore.subtoInputs.existingLoanBalance
 ], () => {
   if (props.showModal) {
     napkinSignedText.value = generateNapkinSignedTemplate();
